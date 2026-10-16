@@ -1,3 +1,5 @@
+import type { Site } from "@/lib/types";
+
 function IconChart() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -80,56 +82,36 @@ function IconTrend() {
   );
 }
 
-const cards = [
-  {
-    icon: <IconChart />,
-    title: "Omset stagnan",
-    caption: "meskipun sudah iklan dan banyak konten",
-  },
-  {
-    icon: <IconUsers />,
-    title: "Tim kurang produktif",
-    caption: "dan semua keputusan bergantung pada pemilik",
-  },
-  {
-    icon: <IconHandshake />,
-    title: "Brand sulit dibedakan",
-    caption: "dengan kompetitor dan sering terjebak perang harga",
-  },
-  {
-    icon: <IconTrend />,
-    title: "Bingung strategi",
-    caption: "untuk mengembangkan bisnis ke level berikutnya",
-  },
-];
+const icons = [<IconChart key="chart" />, <IconUsers key="users" />, <IconHandshake key="hand" />, <IconTrend key="trend" />];
 
-export default function PainPoints() {
+export default function PainPoints({ content }: { content: Site["pain"] }) {
   return (
     <section id="tentang" className="bg-gekraf-surface">
       <div className="mx-auto w-[min(90%,1440px)] px-5 sm:px-8 lg:px-12 grid gap-10 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-14 lg:py-20">
         <div className="animate-fade-up">
           <span className="inline-flex rounded-full bg-gekraf-gold px-4 py-1.5 text-[16px] font-bold tracking-[0.14em] text-gekraf-ink uppercase">
-            Kenali Situasinya
+            {content.badge}
           </span>
           <h2 className="mt-5 text-[clamp(1.975rem,3.6vw,2.625rem)] leading-[1.2] font-extrabold text-gekraf-ink">
-            Apakah Anda Mengalami
-            <br />
-            Hal yang Sama?
+            {content.title.split("\n").map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
           </h2>
           <p className="mt-4 max-w-md text-[18px] leading-relaxed text-gekraf-muted">
-            Banyak bisnis tumbuh, tapi pemilik tetap merasa kewalahan. Mungkin
-            Anda juga merasakan:
+            {content.body}
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {cards.map((c) => (
+          {content.cards.map((c, i) => (
             <article
-              key={c.title}
+              key={`${c.title}-${i}`}
               className="flex items-center gap-4 rounded-2xl bg-white px-5 py-5 shadow-[0_4px_24px_rgba(15,23,42,0.06)]"
             >
               <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gekraf-gold">
-                {c.icon}
+                {icons[i] ?? icons[0]}
               </span>
               <div className="min-w-0">
                 <p className="text-[18px] leading-snug font-bold text-gekraf-ink">

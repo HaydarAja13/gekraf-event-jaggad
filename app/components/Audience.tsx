@@ -1,3 +1,5 @@
+import type { Site } from "@/lib/types";
+
 const items = [
   {
     label: "Pemilik UMKM dan bisnis menengah",
@@ -125,32 +127,30 @@ const items = [
   },
 ];
 
-export default function Audience() {
+export default function Audience({ content }: { content: Site["audience"] }) {
   return (
     <section id="fasilitas" className="bg-gekraf-cyan-deep text-white">
       <div className="mx-auto w-[95%] px-6 sm:px-10 lg:px-12 py-20 lg:py-24">
         <div className="mx-auto max-w-[48rem] text-center">
           <span className="inline-flex rounded-full border border-gekraf-gold bg-gekraf-gold/20 px-4 py-1.5 text-[16px] font-extrabold tracking-[0.14em] text-white uppercase">
-            Untuk Siapa
+            {content.badge}
           </span>
           <h2 className="mt-5 font-serif text-[clamp(2.125rem,4vw,2.875rem)] leading-[1.15] font-bold text-white">
-            Workshop Ini Cocok untuk Anda
+            {content.title}
           </h2>
           <p className="mx-auto mt-4 max-w-[40rem] text-[18px] leading-[1.7] text-white/85">
-            Pemilik bisnis, founder startup, UMKM, eksekutif, dan profesional
-            yang ingin mengembangkan bisnis secara lebih terstruktur dan
-            berkelanjutan.
+            {content.body}
           </p>
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:gap-4">
-          {items.map((item) => (
+          {content.items.map((item, i) => (
             <article
-              key={item.label}
+              key={`${item.label}-${i}`}
               className="flex min-h-[200px] flex-col items-center rounded-2xl border-2 border-gekraf-gold px-3 pt-4 pb-5 text-center lg:min-h-[220px]"
             >
               <span className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full bg-gekraf-gold">
-                {item.icon}
+                {items[i]?.icon ?? items[0].icon}
               </span>
               <p className="mt-6 mx-4 max-w-[11rem] text-[18px] leading-[1.45] font-medium text-white sm:mx-5">
                 {item.label}

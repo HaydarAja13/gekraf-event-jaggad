@@ -1,3 +1,5 @@
+import type { Site } from "@/lib/types";
+
 const benefits = [
   {
     line1: "Sesi Kelas",
@@ -76,37 +78,34 @@ const benefits = [
   },
 ];
 
-export default function WhyChoose() {
+export default function WhyChoose({ content }: { content: Site["why"] }) {
   return (
     <section className="bg-gekraf-surface">
       <div className="mx-auto w-[95%] px-6 sm:px-10 lg:px-12 py-20 lg:py-24">
         <div className="max-w-[44rem]">
           <span className="inline-flex rounded-full bg-gekraf-gold px-4 py-1.5 text-[16px] font-extrabold tracking-[0.14em] text-gekraf-ink uppercase">
-            Kenapa Memilih
+            {content.badge}
           </span>
-          {/* exact 2 lines — matches reference */}
           <h2 className="mt-5 text-[clamp(1.825rem,3.4vw,2.725rem)] leading-[1.18] font-extrabold text-gekraf-ink">
-            <span className="block sm:whitespace-nowrap">
-              Bukan Sekadar Seminar,
-            </span>
-            <span className="block sm:whitespace-nowrap">
-              Ini Kelas Bisnis yang Praktis
-            </span>
+            {content.title.split("\n").map((line, i) => (
+              <span key={i} className="block sm:whitespace-nowrap">
+                {line}
+              </span>
+            ))}
           </h2>
           <p className="mt-4 max-w-[38rem] text-[18px] leading-[1.7] text-gekraf-muted">
-            Benefit tidak hanya mendapatkan materi, tetapi juga langsung
-            mengerjakan strategi bisnis mereka sendiri.
+            {content.body}
           </p>
         </div>
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {benefits.map((b) => (
+          {content.benefits.map((b, i) => (
             <article
-              key={`${b.line1}-${b.line2}`}
+              key={`${b.line1}-${b.line2}-${i}`}
               className="flex items-center gap-4 rounded-2xl bg-white px-6 py-6 shadow-[0_6px_24px_rgba(2,153,195,0.08)]"
             >
               <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gekraf-gold">
-                {b.icon}
+                {benefits[i]?.icon ?? benefits[0].icon}
               </span>
               <p className="text-[18px] leading-snug font-bold text-gekraf-ink">
                 <span className="block">{b.line1}</span>

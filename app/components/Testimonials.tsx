@@ -1,25 +1,5 @@
-import Image from "next/image";
-
-const items = [
-  {
-    name: "Rizky Pratama",
-    role: "Founder R&B",
-    text: "Materinya sangat aplikatif dan langsung bisa saya terapkan di bisnis. Pengisian kelasnya terstruktur banget.",
-    src: "https://placehold.co/100x100/c5cdd8/0B0E16/jpeg?text=RP",
-  },
-  {
-    name: "Sinta Anggraini",
-    role: "Pemilik Brand Fashion",
-    text: "Setelah ikut workshop ini, saya lebih jelas menentukan strategi marketing dan membangun tim yang solid.",
-    src: "https://placehold.co/100x100/c5cdd8/0B0E16/jpeg?text=SA",
-  },
-  {
-    name: "Marjano Wijaya",
-    role: "Direktur Perusahaan",
-    text: "Pembicara berbagi pengalaman nyata dan insight yang sangat relevan dengan kondisi bisnis saat ini.",
-    src: "https://placehold.co/100x100/c5cdd8/0B0E16/jpeg?text=MW",
-  },
-];
+import type { Site } from "@/lib/types";
+import { CmsImage } from "./CmsImage";
 
 function Stars() {
   return (
@@ -40,32 +20,31 @@ function Stars() {
   );
 }
 
-export default function Testimonials() {
+export default function Testimonials({ content }: { content: Site["testimonials"] }) {
   return (
     <section id="testimoni" className="bg-gekraf-surface">
       <div className="site-wrap py-20 lg:py-24">
         <div className="mx-auto max-w-[46rem] text-center">
           <span className="inline-flex rounded-full bg-gekraf-gold px-4 py-1.5 text-[16px] font-bold tracking-[0.14em] text-gekraf-ink uppercase">
-            Testimoni
+            {content.badge}
           </span>
           <h2 className="mt-5 text-[clamp(1.975rem,3.5vw,2.575rem)] leading-[1.2] font-extrabold text-gekraf-ink">
-            Kata Mereka yang Sudah Mengikuti Kelas Ini
+            {content.title}
           </h2>
           <p className="mx-auto mt-3 max-w-[36rem] text-[18px] leading-[1.65] text-[#5F7C97]">
-            Pengalaman nyata dari pemilik bisnis dan profesional yang sudah
-            mendapatkan ilmunya.
+            {content.body}
           </p>
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
-          {items.map((t) => (
+          {content.items.map((t, i) => (
             <article
-              key={t.name}
+              key={`${t.name}-${i}`}
               className="rounded-2xl border border-[#E2E8F0] bg-white p-7 sm:p-8"
             >
               <div className="flex items-center gap-4">
                 <div className="relative h-14 w-14 shrink-0">
-                  <Image
+                  <CmsImage
                     src={t.src}
                     alt={t.name}
                     width={56}

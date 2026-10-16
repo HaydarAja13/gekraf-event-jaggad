@@ -1,5 +1,50 @@
 @import "tailwindcss";
 
+/*
+  Admin back office palette. Brand cyan carries selection and the primary
+  action; every other colour is a neutral or a status tint. Elevation is a
+  1px border everywhere, never a shadow.
+*/
+:root {
+  --dash-bg: #f6f7f9;
+  --dash-surface: #ffffff;
+  --dash-line: #e9eaee;
+  --dash-line-soft: #f1f2f5;
+  --dash-ink: #14181f;
+  --dash-muted: #6b7280;
+  --dash-muted-strong: #565c66;
+  --dash-faint: #8a919c;
+  --dash-accent: #0299c3;
+  --dash-fill: #017a99;
+  --dash-fill-hover: #016b86;
+  --dash-soft: #e8f6fa;
+  --dash-edge: #cfe9f1;
+  --dash-track: #eceef2;
+  --dash-ok-bg: #e6f5e9;
+  --dash-ok-fg: #17683a;
+  --dash-wait-bg: #f5eafb;
+  --dash-wait-fg: #7a2ba8;
+  --dash-off-bg: #fdeceb;
+  --dash-off-fg: #a3231b;
+  --dash-warn-bg: #fdf3e2;
+  --dash-warn-fg: #8a5a08;
+  /* One gutter for every card, row and toolbar, so the back office keeps its
+     rhythm from a laptop to a desk-width monitor. */
+  --dash-gutter: 1rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --dash-gutter: 1.25rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --dash-gutter: 1.5rem;
+  }
+}
+
 :root {
   --gekraf-cyan: #0299c3;
   --gekraf-cyan-deep: #018bb0;
@@ -30,6 +75,28 @@
   --color-gekraf-black: var(--gekraf-black);
   --font-sans: var(--font-jakarta);
   --font-serif: var(--font-playfair);
+  --color-dash-bg: var(--dash-bg);
+  --color-dash-surface: var(--dash-surface);
+  --color-dash-line: var(--dash-line);
+  --color-dash-line-soft: var(--dash-line-soft);
+  --color-dash-ink: var(--dash-ink);
+  --color-dash-muted: var(--dash-muted);
+  --color-dash-muted-strong: var(--dash-muted-strong);
+  --color-dash-faint: var(--dash-faint);
+  --color-dash-accent: var(--dash-accent);
+  --color-dash-fill: var(--dash-fill);
+  --color-dash-fill-hover: var(--dash-fill-hover);
+  --color-dash-soft: var(--dash-soft);
+  --color-dash-edge: var(--dash-edge);
+  --color-dash-track: var(--dash-track);
+  --color-dash-ok-bg: var(--dash-ok-bg);
+  --color-dash-ok-fg: var(--dash-ok-fg);
+  --color-dash-wait-bg: var(--dash-wait-bg);
+  --color-dash-wait-fg: var(--dash-wait-fg);
+  --color-dash-off-bg: var(--dash-off-bg);
+  --color-dash-off-fg: var(--dash-off-fg);
+  --color-dash-warn-bg: var(--dash-warn-bg);
+  --color-dash-warn-fg: var(--dash-warn-fg);
 }
 
 html {
@@ -43,6 +110,118 @@ body {
   font-family: var(--font-jakarta), system-ui, sans-serif;
   font-size: 18px;
   overflow-x: clip;
+}
+
+.admin-shell {
+  caret-color: var(--dash-accent);
+  scrollbar-color: #d7dae0 transparent;
+  scrollbar-width: thin;
+  font-size: 14px;
+}
+
+.admin-shell ::selection {
+  background: var(--dash-soft);
+  color: var(--dash-ink);
+}
+
+/* Numbers in tables and stat pills line up in columns. */
+.admin-shell table,
+.admin-shell .tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-shell :focus-visible {
+  outline: 2px solid var(--dash-accent);
+  outline-offset: 2px;
+}
+
+/* Status pill: one shape, five tones. Tints are light enough to read as
+   quiet, dark enough to clear 4.5:1 against their own background. */
+.dash-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 999px;
+  padding: 0.25rem 0.625rem;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+.dash-pill[data-tone="ok"] {
+  background: var(--dash-ok-bg);
+  color: var(--dash-ok-fg);
+}
+.dash-pill[data-tone="wait"] {
+  background: var(--dash-wait-bg);
+  color: var(--dash-wait-fg);
+}
+.dash-pill[data-tone="info"] {
+  background: var(--dash-soft);
+  color: var(--dash-fill-hover);
+}
+.dash-pill[data-tone="off"] {
+  background: var(--dash-off-bg);
+  color: var(--dash-off-fg);
+}
+.dash-pill[data-tone="warn"] {
+  background: var(--dash-warn-bg);
+  color: var(--dash-warn-fg);
+}
+.dash-pill[data-tone="neutral"] {
+  background: var(--dash-track);
+  color: var(--dash-muted-strong);
+}
+
+/* One table anatomy for every screen: a tinted header strip, hairline row
+   rules, and full-height separators between columns. */
+.admin-shell .dash-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.admin-shell .dash-table thead th {
+  background: #f8f9fb;
+  border-bottom: 1px solid var(--dash-line-soft);
+}
+
+.admin-shell .dash-table th + th,
+.admin-shell .dash-table td + td {
+  border-left: 1px solid var(--dash-line-soft);
+}
+
+.admin-shell .dash-table tbody tr + tr td {
+  border-top: 1px solid var(--dash-line-soft);
+}
+
+.admin-shell .dash-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 13px;
+}
+
+.admin-shell .dash-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 13px;
+}
+
+.admin-shell .dash-table tbody tr:hover td {
+  background: #fcfdfe;
+}
+
+/* Dashed slot markers: planned-but-unfilled content. */
+.dash-empty-ring {
+  border: 1.5px dashed var(--dash-edge);
+  background: var(--dash-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell *,
+  .admin-shell *::before,
+  .admin-shell *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Content rail: ~90% with guaranteed side gutter */

@@ -1,36 +1,29 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import type { Site } from "@/lib/types";
+import { CmsImage } from "./CmsImage";
 
-const links = [
-  { href: "#tentang", label: "Tentang" },
-  { href: "#pemateri", label: "Pemateri" },
-  { href: "#kurikulum", label: "Kurikulum" },
-  { href: "#fasilitas", label: "Fasilitas" },
-  { href: "#testimoni", label: "Testimoni" },
-  { href: "#harga", label: "Harga" },
-];
-
-function Logo() {
+function Logo({ content }: { content: Site["navbar"] }) {
   return (
     <a href="#" className="relative z-10 flex shrink-0 items-center gap-2.5">
-      <Image
-        src="/logo.png"
-        alt="Business Skill Mastery"
+      <CmsImage
+        src={content.logoSrc || "/logo.png"}
+        alt={content.logoAlt}
         width={3375}
         height={4219}
         className="h-[76px] w-auto object-contain sm:h-[84px]"
         priority
       />
       <span className="text-[18px] font-bold tracking-[0.08em] text-gekraf-ink uppercase">
-        Business Skill Mastery
+        {content.brand}
       </span>
     </a>
   );
 }
 
-export default function Navbar() {
+export default function Navbar({ content }: { content: Site["navbar"] }) {
+  const links = content.links;
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
 
@@ -47,7 +40,7 @@ export default function Navbar() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [links]);
 
   const linkClass = (href: string) =>
     `text-[18px] font-medium transition-colors hover:text-gekraf-cyan ${
@@ -59,7 +52,7 @@ export default function Navbar() {
 
       {/* tinggi bar tetap — logo boleh lebih tinggi dari bar */}
       <div className="mx-auto flex h-[68px] w-[95%] items-center justify-between gap-4 overflow-visible px-6 sm:px-10 lg:h-[72px] lg:px-12">
-        <Logo />
+        <Logo content={content} />
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Utama">
           {links.map((l) => (
@@ -74,10 +67,10 @@ export default function Navbar() {
         </nav>
 
         <a
-          href="#daftar"
+          href={content.ctaHref}
           className="hidden items-center gap-1.5 rounded-full bg-gekraf-gold px-5 py-2.5 text-[18px] font-extrabold text-gekraf-ink transition hover:bg-gekraf-gold-bright lg:inline-flex"
         >
-          Daftar Sekarang
+          {content.ctaLabel}
           <span aria-hidden>→</span>
         </a>
 
@@ -129,11 +122,11 @@ export default function Navbar() {
               </a>
             ))}
             <a
-              href="#daftar"
+              href={content.ctaHref}
               className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-full bg-gekraf-gold px-5 py-3 text-[18px] font-extrabold text-gekraf-ink"
               onClick={() => setOpen(false)}
             >
-              Daftar Sekarang →
+              {content.ctaLabel} →
             </a>
           </nav>
         </div>

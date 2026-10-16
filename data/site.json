@@ -1,0 +1,329 @@
+{
+  "seo": {
+    "title": "Business Skill Mastery",
+    "description": "Build Your Business. Lead Your People. Scale Your Impact. — National Business Growth Class"
+  },
+  "navbar": {
+    "logoSrc": "/logo.png",
+    "logoAlt": "Business Skill Mastery",
+    "brand": "Business Skill Mastery",
+    "ctaLabel": "Daftar Sekarang",
+    "ctaHref": "#harga",
+    "links": [
+      {
+        "href": "#tentang",
+        "label": "Tentang"
+      },
+      {
+        "href": "#pemateri",
+        "label": "Pemateri"
+      },
+      {
+        "href": "#kurikulum",
+        "label": "Kurikulum"
+      },
+      {
+        "href": "#fasilitas",
+        "label": "Fasilitas"
+      },
+      {
+        "href": "#testimoni",
+        "label": "Testimoni"
+      },
+      {
+        "href": "#harga",
+        "label": "Harga"
+      }
+    ]
+  },
+  "hero": {
+    "badge": "National Business Growth Class",
+    "titleLine1": "BUSINESS",
+    "titleGold": "MASTERY",
+    "titleRest": "SKILL",
+    "subtitle": "Build Your Business. Lead Your People. Scale Your Impact.",
+    "body": "Kelas intensif 1 hari yang memadukan strategi pertumbuhan bisnis, kepemimpinan tim, dan pemasaran untuk membantu Anda membangun bisnis secara lebih terstruktur.",
+    "date": "Sabtu, 21 November 2026",
+    "time": "08.00 – 12.30 WIB",
+    "venue": "Gets Hotel Semarang",
+    "city": "Semarang, Jawa Tengah",
+    "ctaLabel": "Daftar Sekarang",
+    "ctaHref": "#harga",
+    "quota": "Kuota terbatas untuk 200 peserta",
+    "backgroundSrc": "/hero-bg.png",
+    "speakers": [
+      {
+        "name": "Bayu Setya Budi",
+        "role": "HR & People\nManagement",
+        "src": "/speakers/bayu-setya.png"
+      },
+      {
+        "name": "Sandiaga Salahuddin Uno",
+        "role": "Enterpreneuship\n& Businness Growth",
+        "src": "/speakers/sandiaga-uno.png"
+      },
+      {
+        "name": "Deryansha Azhary",
+        "role": "Marketing, Brand\n& Businness",
+        "src": "/speakers/deryansha-azhary.png"
+      }
+    ]
+  },
+  "pain": {
+    "badge": "Kenali Situasinya",
+    "title": "Apakah Anda Mengalami\nHal yang Sama?",
+    "body": "Banyak bisnis tumbuh, tapi pemilik tetap merasa kewalahan. Mungkin Anda juga merasakan:",
+    "cards": [
+      {
+        "title": "Omset stagnan",
+        "caption": "meskipun sudah iklan dan banyak konten"
+      },
+      {
+        "title": "Tim kurang produktif",
+        "caption": "dan semua keputusan bergantung pada pemilik"
+      },
+      {
+        "title": "Brand sulit dibedakan",
+        "caption": "dengan kompetitor dan sering terjebak perang harga"
+      },
+      {
+        "title": "Bingung strategi",
+        "caption": "untuk mengembangkan bisnis ke level berikutnya"
+      }
+    ]
+  },
+  "audience": {
+    "badge": "Untuk Siapa",
+    "title": "Workshop Ini Cocok untuk Anda",
+    "body": "Pemilik bisnis, founder startup, UMKM, eksekutif, dan profesional yang ingin mengembangkan bisnis secara lebih terstruktur dan berkelanjutan.",
+    "items": [
+      {
+        "label": "Pemilik UMKM dan bisnis menengah"
+      },
+      {
+        "label": "Founder startup dan pelaku usaha digital"
+      },
+      {
+        "label": "Direktur, manajer, dan pemimpin unit bisnis"
+      },
+      {
+        "label": "Profesional yang ingin menjadi pengusaha"
+      },
+      {
+        "label": "Pengusaha muda dan generasi bisnis keluarga"
+      }
+    ]
+  },
+  "speakers": {
+    "badge": "Pembicara",
+    "title": "Belajar Langsung dari Para Praktisi",
+    "body": "Tiga perspektif strategis dalam satu hari, untuk hasil yang lebih lengkap.",
+    "people": [
+      {
+        "name": "Bayu Setya Budi",
+        "title": "HR & People Management",
+        "badge": "LEAD",
+        "headline": "Bangun Tim yang Produktif dan Bertanggung Jawab pada Hasil",
+        "src": "/speakers/bayu-setya.png",
+        "points": [
+          "Struktur organisasi",
+          "Rekrutmen & delegasi",
+          "KPI dan evaluasi kinerja",
+          "Budaya kerja dan accountability"
+        ]
+      },
+      {
+        "name": "Sandiaga Salahuddin Uno",
+        "title": "Entrepreneurship & Business Growth",
+        "badge": "SCALE",
+        "headline": "Perbesar Bisnis dengan Peluang dan Kemitraan yang Tepat",
+        "src": "/speakers/sandiaga-uno.png",
+        "points": [
+          "Membaca peluang pasar",
+          "Inovasi model bisnis",
+          "Kemitraan dan jaringan",
+          "Strategi ekspansi yang terukur"
+        ]
+      },
+      {
+        "name": "Deryansha Azhary",
+        "title": "Kassiolusi · Marketing, Brand & Business",
+        "badge": "GROW",
+        "headline": "Bangun Brand yang Menarik dan Menghasilkan Penjualan",
+        "src": "/speakers/deryansha-azhary.png",
+        "points": [
+          "Positioning dan diferensiasi",
+          "Konten, iklan, dan funnel penjualan",
+          "Optimasi penawaran dan closing",
+          "Retensi pelanggan"
+        ]
+      }
+    ]
+  },
+  "curriculum": {
+    "badge": "Kurikulum",
+    "title": "Apa yang Akan Dipelajari\nSelama 1 Hari?",
+    "body": "Materi dirancang praktis, berbasis pengalaman nyata, dan dapat langsung diterapkan di bisnis Anda.",
+    "modules": [
+      {
+        "title": "Build a High-Performance Organization",
+        "desc": "Strategi membangun tim dan sistem kerja yang produktif."
+      },
+      {
+        "title": "Build a Brand That Sells",
+        "desc": "Strategi marketing dan penjualan yang menghasilkan."
+      },
+      {
+        "title": "From Small Business to Scalable Business",
+        "desc": "Peluang, hambatan, dan strategi pertumbuhan."
+      },
+      {
+        "title": "Business Mastery Lab",
+        "desc": "Studi kasus dan simulasi penyusunan strategi bisnis."
+      },
+      {
+        "title": "Executive Business Talk & Q&A",
+        "desc": "Diskusi langsung dengan para pembicara."
+      },
+      {
+        "title": "90-Day Business Action Plan",
+        "desc": "Menyusun rencana implementasi untuk 90 hari ke depan."
+      }
+    ]
+  },
+  "why": {
+    "badge": "Kenapa Memilih",
+    "title": "Bukan Sekadar Seminar,\nIni Kelas Bisnis yang Praktis",
+    "body": "Benefit tidak hanya mendapatkan materi, tetapi juga langsung mengerjakan strategi bisnis mereka sendiri.",
+    "benefits": [
+      {
+        "line1": "Sesi Kelas",
+        "line2": "Interaktif"
+      },
+      {
+        "line1": "Business Mastery",
+        "line2": "Workbook"
+      },
+      {
+        "line1": "Studi Kasus",
+        "line2": "dan Diskusi"
+      },
+      {
+        "line1": "90-Day",
+        "line2": "Action Plan"
+      }
+    ]
+  },
+  "testimonials": {
+    "badge": "Testimoni",
+    "title": "Kata Mereka yang Sudah Mengikuti Kelas Ini",
+    "body": "Pengalaman nyata dari pemilik bisnis dan profesional yang sudah mendapatkan ilmunya.",
+    "items": [
+      {
+        "name": "Rizky Pratama",
+        "role": "Founder R&B",
+        "text": "Materinya sangat aplikatif dan langsung bisa saya terapkan di bisnis. Pengisian kelasnya terstruktur banget.",
+        "src": "https://placehold.co/100x100/c5cdd8/0B0E16/jpeg?text=RP"
+      },
+      {
+        "name": "Sinta Anggraini",
+        "role": "Pemilik Brand Fashion",
+        "text": "Setelah ikut workshop ini, saya lebih jelas menentukan strategi marketing dan membangun tim yang solid.",
+        "src": "https://placehold.co/100x100/c5cdd8/0B0E16/jpeg?text=SA"
+      },
+      {
+        "name": "Marjano Wijaya",
+        "role": "Direktur Perusahaan",
+        "text": "Pembicara berbagi pengalaman nyata dan insight yang sangat relevan dengan kondisi bisnis saat ini.",
+        "src": "https://placehold.co/100x100/c5cdd8/0B0E16/jpeg?text=MW"
+      }
+    ]
+  },
+  "pricing": {
+    "badge": "Pilih Tiket",
+    "title": "Investasi untuk Masa Depan Bisnis Anda",
+    "body": "Pilih tiket yang sesuai dengan kebutuhan Anda. Kuota terbatas untuk 200 peserta.",
+    "ctaLabel": "Pilih Tiket",
+    "ctaHref": "#harga",
+    "plans": [
+      {
+        "name": "EARLYBIRD",
+        "priceWas": "Rp 1.499.000",
+        "price": "Rp 999.000",
+        "slots": "80",
+        "features": [
+          "Akses kelas 1 hari",
+          "Workbook digital",
+          "Sertifikat peserta",
+          "Networking umum"
+        ]
+      },
+      {
+        "name": "NORMAL",
+        "priceWas": "Rp 1.750.000",
+        "price": "Rp 1.250.000",
+        "slots": "80",
+        "features": [
+          "Akses kelas 1 hari",
+          "Workbook digital",
+          "Sertifikat peserta",
+          "Networking umum"
+        ]
+      },
+      {
+        "name": "LAST CALL",
+        "priceWas": "Rp 2.000.000",
+        "price": "Rp 1.500.000",
+        "slots": "40",
+        "features": [
+          "Akses kelas 1 hari",
+          "Workbook digital",
+          "Sertifikat peserta",
+          "Networking umum"
+        ]
+      }
+    ]
+  },
+  "faq": {
+    "badge": "FAQ",
+    "title": "Pertanyaan yang Sering Ditanyakan",
+    "body": "Masih ragu? Beberapa hal ini mungkin bisa menjawab pertanyaan Anda.",
+    "items": [
+      {
+        "q": "Workshop ini cocok untuk siapa?",
+        "a": "Pemilik UMKM, founder startup, direktur/manajer, profesional yang ingin berwirausaha, serta pengusaha muda dan generasi bisnis keluarga."
+      },
+      {
+        "q": "Apakah peserta mendapat sertifikat?",
+        "a": "Ya. Setiap peserta yang hadir penuh akan menerima sertifikat resmi Business Skill Mastery."
+      },
+      {
+        "q": "Di mana lokasi workshop-nya?",
+        "a": "Workshop diadakan di Gets Hotel Semarang, Semarang, Jawa Tengah."
+      },
+      {
+        "q": "Bagaimana jika saya berhalangan hadir?",
+        "a": "Anda dapat mengalihkan tiket ke rekan/kolega dengan konfirmasi paling lambat H-3 sebelum acara."
+      },
+      {
+        "q": "Apakah harga sudah termasuk semua materi?",
+        "a": "Ya. Harga tiket sudah termasuk akses kelas, workbook, dan fasilitas sesuai paket yang Anda pilih."
+      },
+      {
+        "q": "Bagaimana cara mendaftar?",
+        "a": "Klik tombol Daftar Sekarang, pilih paket tiket, lalu selesaikan pembayaran. Tim kami akan mengirim konfirmasi via WhatsApp."
+      }
+    ]
+  },
+  "cta": {
+    "badge": "Kuota Terbatas",
+    "title": "Amankan Kursi Anda Sekarang",
+    "body": "Jangan lewatkan kesempatan belajar langsung dari para praktisi dan pemimpin bisnis dalam satu hari yang penuh insight.",
+    "button": "Daftar Sekarang",
+    "buttonHref": "#harga",
+    "whatsappText": "Info pertanyaan? Hubungi",
+    "whatsappNumber": "0822-4198-9936",
+    "whatsappHref": "https://wa.me/6282241989936",
+    "image": "https://placehold.co/1920x700/0299c3/018bb0/jpeg?text=Building"
+  }
+}

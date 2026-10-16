@@ -1,4 +1,5 @@
-import Image from "next/image";
+import type { Site } from "@/lib/types";
+import { CmsImage } from "./CmsImage";
 
 function CalendarIcon() {
   return (
@@ -35,12 +36,12 @@ function WhatsAppIcon() {
   );
 }
 
-export default function FinalCTA() {
+export default function FinalCTA({ content }: { content: Site["cta"] }) {
   return (
     <section className="relative overflow-hidden bg-gekraf-cyan text-white">
       <div className="pointer-events-none absolute inset-0">
-        <Image
-          src="https://placehold.co/1920x700/0299c3/018bb0/jpeg?text=Building"
+        <CmsImage
+          src={content.image}
           alt=""
           fill
           className="object-cover object-center opacity-[0.28]"
@@ -53,38 +54,37 @@ export default function FinalCTA() {
       <div className="mx-auto w-[95%] px-6 sm:px-10 lg:px-12 relative grid items-center gap-10 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:py-20">
         <div>
           <span className="inline-flex rounded-full border border-gekraf-gold bg-gekraf-gold/20 px-4 py-1.5 text-[16px] font-extrabold tracking-[0.16em] text-white uppercase">
-            Kuota Terbatas
+            {content.badge}
           </span>
           <h2 className="mt-5 text-[clamp(1.875rem,3.2vw,2.725rem)] leading-[1.15] font-extrabold text-white lg:whitespace-nowrap">
-            Amankan Kursi Anda Sekarang
+            {content.title}
           </h2>
           <p className="mt-4 max-w-[30rem] text-[18px] leading-[1.7] text-white/80">
-            Jangan lewatkan kesempatan belajar langsung dari para praktisi dan
-            pemimpin bisnis dalam satu hari yang penuh insight.
+            {content.body}
           </p>
         </div>
 
         <div className="flex flex-col items-start lg:justify-self-end">
           <a
-            href="#daftar"
+            href={content.buttonHref}
             className="inline-flex items-center gap-3 rounded-full bg-gekraf-gold px-10 py-5 text-[20px] font-extrabold text-gekraf-ink shadow-[0_8px_28px_rgba(242,203,25,0.28)] transition hover:bg-gekraf-gold-bright"
           >
             <CalendarIcon />
-            Daftar Sekarang
+            {content.button}
             <span aria-hidden className="text-[20px]">
               →
             </span>
           </a>
           <a
-            href="https://wa.me/6282241989936"
+            href={content.whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-5 inline-flex items-center gap-3 text-[18px] text-white/90 transition hover:text-white"
           >
             <WhatsAppIcon />
             <span>
-              Info pertanyaan? Hubungi{" "}
-              <strong className="font-bold">0822-4198-9936</strong>
+              {content.whatsappText}{" "}
+              <strong className="font-bold">{content.whatsappNumber}</strong>
             </span>
           </a>
         </div>

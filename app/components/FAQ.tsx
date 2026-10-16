@@ -1,33 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-const faqs = [
-  {
-    q: "Workshop ini cocok untuk siapa?",
-    a: "Pemilik UMKM, founder startup, direktur/manajer, profesional yang ingin berwirausaha, serta pengusaha muda dan generasi bisnis keluarga.",
-  },
-  {
-    q: "Apakah peserta mendapat sertifikat?",
-    a: "Ya. Setiap peserta yang hadir penuh akan menerima sertifikat resmi Business Skill Mastery.",
-  },
-  {
-    q: "Di mana lokasi workshop-nya?",
-    a: "Workshop diadakan di Gets Hotel Semarang, Semarang, Jawa Tengah.",
-  },
-  {
-    q: "Bagaimana jika saya berhalangan hadir?",
-    a: "Anda dapat mengalihkan tiket ke rekan/kolega dengan konfirmasi paling lambat H-3 sebelum acara.",
-  },
-  {
-    q: "Apakah harga sudah termasuk semua materi?",
-    a: "Ya. Harga tiket sudah termasuk akses kelas, workbook, dan fasilitas sesuai paket yang Anda pilih.",
-  },
-  {
-    q: "Bagaimana cara mendaftar?",
-    a: "Klik tombol Daftar Sekarang, pilih paket tiket, lalu selesaikan pembayaran. Tim kami akan mengirim konfirmasi via WhatsApp.",
-  },
-];
+import type { Site } from "@/lib/types";
 
 function SearchIcon() {
   return (
@@ -43,7 +17,7 @@ function SearchIcon() {
   );
 }
 
-export default function FAQ() {
+export default function FAQ({ content }: { content: Site["faq"] }) {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
@@ -51,22 +25,22 @@ export default function FAQ() {
       <div className="mx-auto w-[95%] px-6 sm:px-10 lg:px-12 grid gap-10 py-20 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)] lg:items-start lg:gap-14 lg:py-24">
         <div>
           <span className="inline-flex rounded-full bg-gekraf-gold px-4 py-1.5 text-[16px] font-extrabold tracking-[0.14em] text-gekraf-ink uppercase">
-            FAQ
+            {content.badge}
           </span>
           <h2 className="mt-5 text-[clamp(1.975rem,3.5vw,2.625rem)] leading-[1.18] font-extrabold text-gekraf-ink">
-            Pertanyaan yang Sering Ditanyakan
+            {content.title}
           </h2>
           <p className="mt-4 max-w-[24rem] text-[18px] leading-[1.7] text-[#5F7C97]">
-            Masih ragu? Beberapa hal ini mungkin bisa menjawab pertanyaan Anda.
+            {content.body}
           </p>
         </div>
 
         <div className="flex flex-col gap-3">
-          {faqs.map((item, i) => {
+          {content.items.map((item, i) => {
             const isOpen = open === i;
             return (
               <div
-                key={item.q}
+                key={`${item.q}-${i}`}
                 className="overflow-hidden rounded-[28px] border border-[#E2E8F0] bg-white"
               >
                 <button

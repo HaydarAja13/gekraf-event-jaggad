@@ -38,64 +38,36 @@ function Check() {
   );
 }
 
-const plans = [
-  {
-    name: "EARLYBIRD",
-    priceWas: "Rp 1.499.000", // +500rb (coret)
-    price: "Rp 999.000",
-    features: [
-      "Akses kelas 1 hari",
-      "Workbook digital",
-      "Sertifikat peserta",
-      "Networking umum",
-    ],
-  },
-  {
-    name: "NORMAL",
-    priceWas: "Rp 1.750.000",
-    price: "Rp 1.250.000",
-    features: [
-      "Akses kelas 1 hari",
-      "Workbook digital",
-      "Sertifikat peserta",
-      "Networking umum",
-    ],
-  },
-  {
-    name: "LAST CALL",
-    priceWas: "Rp 2.000.000",
-    price: "Rp 1.500.000",
-    features: [
-      "Akses kelas 1 hari",
-      "Workbook digital",
-      "Sertifikat peserta",
-      "Networking umum",
-    ],
-  },
-];
+import type { Site } from "@/lib/types";
+import { planState } from "@/lib/slots";
 
-export default function Pricing() {
+export default function Pricing({
+  content,
+  taken,
+}: {
+  content: Site["pricing"];
+  taken: Record<string, number>;
+}) {
   return (
     <section id="harga" className="bg-gekraf-cyan text-white">
       {/* 1 baris: kiri copy · kanan 3 card — sesuai referensi */}
       <div className="mx-auto grid w-[95%] gap-12 px-6 py-20 sm:px-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.45fr)] lg:items-center lg:gap-10 lg:px-12 lg:py-24">
         <div>
           <span className="inline-flex rounded-full border border-gekraf-gold bg-gekraf-gold/20 px-4 py-1.5 text-[16px] font-extrabold tracking-[0.16em] text-white uppercase">
-            Pilih Tiket
+            {content.badge}
           </span>
           <h2 className="mt-5 text-[clamp(2.025rem,3.6vw,2.675rem)] leading-[1.18] font-extrabold text-white">
-            Investasi untuk Masa Depan Bisnis Anda
+            {content.title}
           </h2>
           <p className="mt-4 max-w-[22rem] text-[18px] leading-[1.7] text-white/80">
-            Pilih tiket yang sesuai dengan kebutuhan Anda. Kuota terbatas untuk
-            200 peserta.
+            {content.body}
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
-          {plans.map((p) => (
+          {content.plans.map((p, i) => (
             <article
-              key={p.name}
+              key={`${p.name}-${i}`}
               className="relative flex flex-col rounded-2xl border-2 border-gekraf-gold px-5 pt-7 pb-5"
             >
               <div className="flex flex-col items-center text-center">
@@ -127,12 +99,40 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <a
-                href="#daftar"
-                className="mt-6 inline-flex items-center justify-center rounded-full border border-white/40 bg-white/15 px-5 py-2.5 text-[18px] font-extrabold text-white transition hover:bg-white/25"
-              >
-                Pilih Tiket
-              </a>
+              {(() => {
+                const state = planState(content.plans, taken, i);
+                return (
+                  <>
+                    <p className="mt-5 text-center text-[15px] font-bold text-white/85">
+                      Sisa slot: {state.left}
+                    </p>
+                    {state.locked ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-3 inline-flex cursor-not-allowed items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-[18px] font-extrabold text-white/60"
+                      >
+                        Belum dibuka
+                      </button>
+                    ) : state.open ? (
+                      <a
+                        href={`/checkout?plan=${encodeURIComponent(p.name)}`}
+                        className="mt-3 inline-flex items-center justify-center rounded-full border border-white/40 bg-white/15 px-5 py-2.5 text-[18px] font-extrabold text-white transition hover:bg-white/25"
+                      >
+                        {content.ctaLabel}
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-3 inline-flex cursor-not-allowed items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-[18px] font-extrabold text-white/60"
+                      >
+                        Slot habis
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </article>
           ))}
         </div>
