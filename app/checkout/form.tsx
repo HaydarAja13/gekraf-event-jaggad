@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, type DragEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { checkoutAction, type CheckoutState } from "@/lib/actions";
+import { checkoutAction, previewReferralAction, type CheckoutState } from "@/lib/actions";
 import type { PayAccount } from "@/lib/sales";
 import type { Site } from "@/lib/types";
 import { AlertIcon, CheckIcon, CopyIcon, SpinnerIcon, UploadIcon, WhatsAppIcon } from "./icons";
@@ -265,6 +265,11 @@ export function CheckoutForm({
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
   const account = accounts.find((item) => item.id === accountId) ?? accounts[0];
   const fieldErrors = state?.fieldErrors ?? {};
+  const [referral, setReferral] = useState("");
+  const [referralNote, setReferralNote] = useState("");
+  const [applied, setApplied] = useState<{ name: string; payable: string; discountLabel: string } | null>(null);
+  const [checking, setChecking] = useState(false);
+  const payable = applied?.payable ?? plan.price;
 
   // Errors come back as state, not a redirect: send focus to the first thing
   // that needs fixing (or to the banner when the problem is not a field).
@@ -397,6 +402,54 @@ export function CheckoutForm({
         </Field>
       </div>
 
+      <div className="mt-4">
+        <Field id="referral" label="Kode referral" error={fieldErrors.referral || referralNote || undefined}>
+          <div className="flex gap-2">
+            <input
+              {...inputProps("referral", fieldErrors.referral || referralNote || undefined)}
+              value={referral}
+              autoComplete="off"
+              placeholder="Opsional, jika Anda punya kode"
+              className={`${fieldClass(Boolean(fieldErrors.referral || referralNote))} min-w-0 flex-1 uppercase`}
+              onChange={(event) => {
+                setReferral(event.target.value);
+                setApplied(null);
+                setReferralNote("");
+              }}
+            />
+            <button
+              type="button"
+              disabled={checking}
+              onClick={async () => {
+                setChecking(true);
+                setReferralNote("");
+                const result = await previewReferralAction(plan.name, referral);
+                setChecking(false);
+                if (!result.ok) {
+                  setApplied(null);
+                  setReferralNote(result.error);
+                  return;
+                }
+                if (result.empty) {
+                  setApplied(null);
+                  return;
+                }
+                setReferral(result.code);
+                setApplied({ name: result.name, payable: result.payable, discountLabel: result.discountLabel });
+              }}
+              className="shrink-0 rounded-xl border border-[#dfe4e8] bg-white px-4 text-[14px] font-extrabold text-gekraf-ink transition hover:border-gekraf-cyan hover:text-gekraf-cyan-deep focus-visible:ring-2 focus-visible:ring-gekraf-cyan/30 focus-visible:outline-none disabled:opacity-60"
+            >
+              {checking ? "Memeriksa…" : "Pakai"}
+            </button>
+          </div>
+          <p className="mt-1.5 text-[13px] text-gekraf-muted">
+            {applied
+              ? `Kode ${applied.name} dipakai. Potongan ${applied.discountLabel}.`
+              : "Kosongkan bila tidak ada. Pakai kode sebelum transfer agar nominalnya berubah."}
+          </p>
+        </Field>
+      </div>
+
       <TearLine>Pembayaran</TearLine>
       <h2 className="sr-only">Pembayaran</h2>
 
@@ -450,14 +503,22 @@ export function CheckoutForm({
 
         {account ? (
           <div className="mt-3 overflow-hidden rounded-2xl border border-[#d6e9f0] bg-[#f4fbfd]">
-            <div className="flex flex-wrap items-end gap-x-8 gap-y-4 px-4 py-4 sm:px-5">
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-4 px-4 py-4 sm:px-5">
               <div>
                 <p className="text-[11.5px] font-extrabold tracking-[0.14em] text-gekraf-cyan-deep uppercase">
                   Nominal transfer
                 </p>
-                <p className="mt-1 text-[21px] leading-none font-extrabold text-gekraf-ink tabular-nums">
-                  {plan.price}
-                </p>
+                {applied ? (
+                  <div className="mt-1.5 flex flex-col items-start gap-1">
+                    <s className="text-[14px] leading-none font-bold text-[#f0301f] decoration-[2.5px] tabular-nums">
+                      {plan.price}
+                    </s>
+                    <span className="text-[21px] leading-none font-extrabold text-gekraf-ink tabular-nums">{payable}</span>
+                    <span className="text-[13px] font-bold text-[#016b86]">Potongan {applied.discountLabel}</span>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-[21px] leading-none font-extrabold text-gekraf-ink tabular-nums">{payable}</p>
+                )}
               </div>
               <div>
                 <p className="text-[11.5px] font-extrabold tracking-[0.14em] text-gekraf-cyan-deep uppercase">
@@ -469,7 +530,7 @@ export function CheckoutForm({
               </div>
               <div className="ml-auto flex flex-wrap gap-2">
                 <CopyButton value={account.number} label="Salin nomor" />
-                <CopyButton value={plan.price.replace(/\D/g, "")} label="Salin nominal" />
+                <CopyButton value={payable.replace(/\D/g, "")} label="Salin nominal" />
               </div>
             </div>
             <p className="border-t border-[#d6e9f0] bg-white/70 px-4 py-2.5 text-[13.5px] text-gekraf-muted sm:px-5">

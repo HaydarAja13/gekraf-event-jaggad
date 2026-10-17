@@ -4,6 +4,7 @@ import { approveOrderAction, rejectOrderAction } from "@/lib/actions";
 import { getAdmin } from "@/lib/auth";
 import { listSales } from "@/lib/sales";
 import { InlineConfirm, ProofPreview, SearchBox } from "../menu";
+import { referralDetail } from "@/lib/referral";
 import { greeting, shortDate, timeOfDay, todayLine } from "../greeting";
 import {
   Avatar,
@@ -71,7 +72,7 @@ async function Transaksi({
   const orders = db.orders.filter((order) => {
     if (status !== "semua" && order.status !== status) return false;
     if (!needle) return true;
-    return [order.fullName, order.email, order.whatsapp, order.plan, order.ticketNo ?? ""]
+    return [order.fullName, order.email, order.whatsapp, order.plan, order.ticketNo ?? "", order.referralCode ?? "", order.referralName ?? ""]
       .join(" ")
       .toLowerCase()
       .includes(needle);
@@ -158,11 +159,12 @@ async function Transaksi({
         </div>
 
         <TableShell
-          minWidth="980px"
+          minWidth="1120px"
           cols={[
-            { key: "peserta", label: "Peserta", width: "24%" },
-            { key: "kontak", label: "Kontak", width: "20%" },
-            { key: "paket", label: "Paket", width: "20%" },
+            { key: "peserta", label: "Peserta", width: "22%" },
+            { key: "kontak", label: "Kontak", width: "16%" },
+            { key: "paket", label: "Paket", width: "16%" },
+            { key: "referral", label: "Referral", width: "22%" },
             { key: "bukti", label: "Bukti", width: "100px" },
             { key: "status", label: "Status", width: "150px" },
             { key: "aksi", label: "Aksi", width: "182px", align: "right" },
@@ -188,6 +190,12 @@ async function Transaksi({
                 <Meta>
                   {order.amount} · {shortDate(order.createdAt)} {timeOfDay(order.createdAt)}
                 </Meta>
+              </Td>
+              <Td>
+                <span className={`block text-[13px] ${order.referralCode ? "font-semibold text-dash-ink" : "text-dash-muted"}`}>
+                  {order.referralCode ? order.referralCode : "Tidak memakai"}
+                </span>
+                <Meta>{order.referralCode ? referralDetail(order) : "Tanpa potongan"}</Meta>
               </Td>
               <Td>
                 <ProofPreview
@@ -234,7 +242,7 @@ async function Transaksi({
           ))}
           {orders.length === 0 ? (
             <tr>
-              <td colSpan={6}>
+              <td colSpan={7}>
                 {counts.semua === 0 ? (
                   <EmptyState
                     icon="receipt"

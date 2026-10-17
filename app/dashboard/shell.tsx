@@ -13,6 +13,7 @@ const GENERAL: { href: string; label: string; icon: IconName }[] = [
   { href: "/dashboard/transaksi", label: "Transaksi", icon: "receipt" },
   { href: "/dashboard/customer", label: "Customer", icon: "users" },
   { href: "/dashboard/pembayaran", label: "Rekening", icon: "card" },
+  { href: "/dashboard/referral", label: "Referral", icon: "tag" },
 ];
 
 const SECTION_ICONS: Record<string, IconName> = {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getAdmin } from "@/lib/auth";
 import { listCustomers } from "@/lib/sales";
 import { SearchBox } from "../menu";
+import { referralDetail } from "@/lib/referral";
 import { greeting, longDate, todayLine } from "../greeting";
 import {
   Avatar,
@@ -149,7 +150,7 @@ async function CustomerList({
                           <span className="block font-semibold text-dash-ink">{order.plan}</span>
                           <Meta>
                             {order.amount}
-                            {order.ticketNo ? ` · ${order.ticketNo}` : ""} ·{" "}
+                            {order.ticketNo ? ` · ${order.ticketNo}` : ""} · {referralDetail(order)} ·{" "}
                             {longDate(order.createdAt)}
                           </Meta>
                         </span>

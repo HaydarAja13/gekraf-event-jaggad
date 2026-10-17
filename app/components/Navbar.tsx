@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import type { Site } from "@/lib/types";
 import { CmsImage } from "./CmsImage";
 
-function Logo({ content }: { content: Site["navbar"] }) {
+function Logo({ content, href }: { content: Site["navbar"]; href: string }) {
   return (
-    <a href="#" className="relative z-10 flex shrink-0 items-center gap-2.5">
+    <a href={href} className="relative z-10 flex shrink-0 items-center gap-2.5">
       <CmsImage
         src={content.logoSrc || "/logo.png"}
         alt={content.logoAlt}
@@ -22,12 +22,21 @@ function Logo({ content }: { content: Site["navbar"] }) {
   );
 }
 
-export default function Navbar({ content }: { content: Site["navbar"] }) {
+export default function Navbar({
+  content,
+  links: showLinks = true,
+}: {
+  content: Site["navbar"];
+  links?: boolean;
+}) {
   const links = content.links;
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
+  const ctaHref =
+    showLinks || !content.ctaHref.startsWith("#") ? content.ctaHref : `/${content.ctaHref}`;
 
   useEffect(() => {
+    if (!showLinks) return;
     const onScroll = () => {
       const y = window.scrollY + 96;
       let current = "";
@@ -40,7 +49,7 @@ export default function Navbar({ content }: { content: Site["navbar"] }) {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [links]);
+  }, [links, showLinks]);
 
   const linkClass = (href: string) =>
     `text-[18px] font-medium transition-colors hover:text-gekraf-cyan ${
@@ -52,28 +61,27 @@ export default function Navbar({ content }: { content: Site["navbar"] }) {
 
       {/* tinggi bar tetap — logo boleh lebih tinggi dari bar */}
       <div className="mx-auto flex h-[68px] w-[95%] items-center justify-between gap-4 overflow-visible px-6 sm:px-10 lg:h-[72px] lg:px-12">
-        <Logo content={content} />
+        <Logo content={content} href={showLinks ? "#" : "/"} />
 
-        <nav className="hidden items-center gap-8 lg:flex" aria-label="Utama">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className={linkClass(l.href)}
-            >
-              {l.label}
-            </a>
-          ))}
-        </nav>
+        {showLinks ? (
+          <nav className="hidden items-center gap-8 lg:flex" aria-label="Utama">
+            {links.map((l) => (
+              <a key={l.href} href={l.href} className={linkClass(l.href)}>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        ) : null}
 
         <a
-          href={content.ctaHref}
+          href={ctaHref}
           className="hidden items-center gap-1.5 rounded-full bg-gekraf-gold px-5 py-2.5 text-[18px] font-extrabold text-gekraf-ink transition hover:bg-gekraf-gold-bright lg:inline-flex"
         >
           {content.ctaLabel}
           <span aria-hidden>→</span>
         </a>
 
+        {showLinks ? (
         <button
           type="button"
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gekraf-ink lg:hidden"
@@ -100,9 +108,10 @@ export default function Navbar({ content }: { content: Site["navbar"] }) {
             )}
           </svg>
         </button>
+        ) : null}
       </div>
 
-      {open && (
+      {showLinks && open && (
         <div
           id="mobile-nav"
           className="border-t border-black/10 bg-white py-4 lg:hidden"
@@ -122,7 +131,7 @@ export default function Navbar({ content }: { content: Site["navbar"] }) {
               </a>
             ))}
             <a
-              href={content.ctaHref}
+              href={ctaHref}
               className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-full bg-gekraf-gold px-5 py-3 text-[18px] font-extrabold text-gekraf-ink"
               onClick={() => setOpen(false)}
             >

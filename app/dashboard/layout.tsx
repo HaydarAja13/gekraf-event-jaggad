@@ -28,7 +28,7 @@ async function Gate({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
   const [site, sales] = await Promise.all([
     getSite(),
-    listSales().catch(() => ({ accounts: [], orders: [] })),
+    listSales().catch(() => ({ accounts: [], orders: [], referrals: [] })),
   ]);
   const waiting = sales.orders.filter((order) => order.status === "pending");
 

@@ -21,6 +21,7 @@ import {
   Td,
 } from "./ui";
 import { MenuButton, ProofPreview } from "./menu";
+import { referralDetail } from "@/lib/referral";
 import { greeting, shortDate, timeOfDay, todayLine } from "./greeting";
 
 export default function DashboardHome({
@@ -151,7 +152,7 @@ async function Home({
                 <span className="block font-medium">{order.plan}</span>
                 <Meta>
                   {order.amount}
-                  {order.ticketNo ? ` · ${order.ticketNo}` : ""}
+                  {order.ticketNo ? ` · ${order.ticketNo}` : ""} · {referralDetail(order)}
                 </Meta>
               </Td>
               <Td>
@@ -272,7 +273,7 @@ async function Home({
                         {order.fullName}
                       </span>
                       <Meta>
-                        {order.institution || order.email} · {timeOfDay(order.createdAt)}
+                        {order.institution || order.email} · {referralDetail(order)} · {timeOfDay(order.createdAt)}
                       </Meta>
                     </span>
                     <span className="hidden shrink-0 text-right sm:block">

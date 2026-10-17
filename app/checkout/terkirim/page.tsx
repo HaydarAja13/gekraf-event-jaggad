@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getSite } from "@/lib/site";
+import Navbar from "@/app/components/Navbar";
 import { TicketFrame } from "../ticket";
-import { CheckoutTopbar } from "../topbar";
 import { WhatsAppIcon } from "../icons";
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default async function SentPage() {
 
   return (
     <>
-      <CheckoutTopbar navbar={site.navbar} cta={site.cta} />
+      <Navbar content={site.navbar} links={false} />
       <main className="relative flex-1 bg-gekraf-surface">
         <div
           aria-hidden

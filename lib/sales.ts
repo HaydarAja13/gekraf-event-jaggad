@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { connection } from "next/server";
+import { normalizeReferralCode } from "@/lib/referral";
 import { makeTicketNo, type OrderStatus } from "@/lib/slots";
 
 export type PayAccount = {
@@ -7,6 +8,13 @@ export type PayAccount = {
   bank: string;
   name: string;
   number: string;
+};
+
+export type ReferralCode = {
+  id: string;
+  name: string;
+  code: string;
+  discountAmount: number;
 };
 
 export type Order = {
@@ -24,6 +32,10 @@ export type Order = {
   status: OrderStatus;
   ticketNo: string | null;
   createdAt: string;
+  referralCodeId: string | null;
+  referralName: string | null;
+  referralCode: string | null;
+  discountAmount: number;
 };
 
 type AccountRow = {
@@ -48,6 +60,17 @@ type OrderRow = {
   status: OrderStatus;
   ticket_no: string | null;
   created_at: string;
+  referral_code_id: number | null;
+  referral_name: string | null;
+  referral_code: string | null;
+  discount_amount: number | null;
+};
+
+type ReferralRow = {
+  id: number;
+  name: string;
+  code: string;
+  discount_amount: number;
 };
 
 const BUCKET = "proofs";
@@ -81,22 +104,50 @@ function mapOrder(row: OrderRow): Order {
     status: row.status,
     ticketNo: row.ticket_no,
     createdAt: row.created_at,
+    referralCodeId: row.referral_code_id == null ? null : String(row.referral_code_id),
+    referralName: row.referral_name,
+    referralCode: row.referral_code,
+    discountAmount: row.discount_amount ?? 0,
+  };
+}
+
+function mapReferral(row: ReferralRow): ReferralCode {
+  return {
+    id: String(row.id),
+    name: row.name,
+    code: row.code,
+    discountAmount: row.discount_amount,
   };
 }
 
 export async function listSales() {
   await connection();
   const client = db();
-  const [accounts, orders] = await Promise.all([
+  const [accounts, orders, referrals] = await Promise.all([
     client.from("payment_accounts").select("id, bank_name, account_name, account_number").order("id"),
     client.from("orders").select("*").order("created_at", { ascending: false }),
+    client.from("referral_codes").select("id, name, code, discount_amount").order("id"),
   ]);
   if (accounts.error) throw new Error(accounts.error.message);
   if (orders.error) throw new Error(orders.error.message);
+  if (referrals.error) throw new Error(referrals.error.message);
   return {
     accounts: (accounts.data as AccountRow[]).map(mapAccount),
     orders: (orders.data as OrderRow[]).map(mapOrder),
+    referrals: (referrals.data as ReferralRow[]).map(mapReferral),
   };
+}
+
+export async function findReferral(code: string) {
+  const normalized = normalizeReferralCode(code);
+  if (!normalized) return null;
+  const { data, error } = await db()
+    .from("referral_codes")
+    .select("id, name, code, discount_amount")
+    .eq("code", normalized)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? mapReferral(data as ReferralRow) : null;
 }
 
 export async function takenByPlan() {
@@ -110,8 +161,12 @@ export async function takenByPlan() {
 }
 
 export async function createOrder(
-  input: Omit<Order, "id" | "status" | "ticketNo" | "createdAt"> & {
+  input: Omit<
+    Order,
+    "id" | "status" | "ticketNo" | "createdAt" | "referralCodeId" | "referralName" | "referralCode" | "discountAmount"
+  > & {
     plans: { name: string; slots: string }[];
+    referralCode: string;
   },
 ) {
   const { error } = await db().rpc("place_order", {
@@ -129,8 +184,10 @@ export async function createOrder(
       name: plan.name,
       slots: Number.parseInt(plan.slots, 10),
     })),
+    referral_code: input.referralCode,
   });
   if (!error) return { ok: true as const };
+  if (error.message.includes("referral")) return { ok: false as const, error: "referral" };
   if (error.message.includes("account")) return { ok: false as const, error: "account" };
   if (error.message.includes("locked")) return { ok: false as const, error: "locked" };
   if (error.message.includes("slot") || error.message.includes("plan")) {
@@ -244,6 +301,43 @@ export async function updateAccount(input: { id: string; bank: string; name: str
     })
     .eq("id", Number(input.id));
   if (error) throw new Error(error.message);
+}
+
+export async function addReferral(input: { name: string; code: string; discountAmount: number }) {
+  const { error } = await db().from("referral_codes").insert({
+    name: input.name,
+    code: input.code,
+    discount_amount: input.discountAmount,
+  });
+  if (!error) return { ok: true as const };
+  if (error.code === "23505") return { ok: false as const, error: "taken" as const };
+  throw new Error(error.message);
+}
+
+export async function updateReferral(input: { id: string; name: string; code: string; discountAmount: number }) {
+  const { error } = await db()
+    .from("referral_codes")
+    .update({
+      name: input.name,
+      code: input.code,
+      discount_amount: input.discountAmount,
+    })
+    .eq("id", Number(input.id));
+  if (!error) return { ok: true as const };
+  if (error.code === "23505") return { ok: false as const, error: "taken" as const };
+  throw new Error(error.message);
+}
+
+export async function removeReferral(id: string) {
+  const client = db();
+  const used = await client
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("referral_code_id", Number(id));
+  if ((used.count ?? 0) > 0) return { ok: false as const, error: "used" as const };
+  const { error } = await client.from("referral_codes").delete().eq("id", Number(id));
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
 }
 
 export async function removeAccount(id: string) {

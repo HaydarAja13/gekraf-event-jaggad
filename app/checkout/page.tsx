@@ -6,9 +6,9 @@ import { listSales } from "@/lib/sales";
 import { getSite } from "@/lib/site";
 import { planState } from "@/lib/slots";
 import type { Site } from "@/lib/types";
+import Navbar from "@/app/components/Navbar";
 import { CheckoutForm } from "./form";
 import { BankIcon, CalendarIcon, LockIcon, PinIcon, TicketOffIcon } from "./icons";
-import { CheckoutTopbar } from "./topbar";
 import { TicketFrame } from "./ticket";
 
 type Plan = Site["pricing"]["plans"][number];
@@ -29,7 +29,7 @@ export default async function CheckoutPage({
 
   return (
     <>
-      <CheckoutTopbar navbar={site.navbar} cta={site.cta} />
+      <Navbar content={site.navbar} links={false} />
       <main className="relative flex-1 bg-gekraf-surface">
         <div
           aria-hidden

@@ -7,14 +7,19 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdmin, login, logout } from "@/lib/auth";
 import { sendTicketEmail } from "@/lib/mail";
+import { formatIdr, normalizeReferralCode, parseIdr, payableAmount, validReferralCode } from "@/lib/referral";
 import {
   addAccount,
+  addReferral,
   approveOrder,
   createOrder,
+  findReferral,
   rejectOrder,
   removeAccount,
   removeProof,
+  removeReferral,
   updateAccount,
+  updateReferral,
   uploadProof,
 } from "@/lib/sales";
 import { getSite, saveSection } from "@/lib/site";
@@ -113,6 +118,7 @@ export async function checkoutAction(
   const jobTitle = String(formData.get("jobTitle") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
   const accountId = String(formData.get("accountId") ?? "");
+  const referral = normalizeReferralCode(String(formData.get("referral") ?? ""));
   const proof = formData.get("proof");
 
   const fieldErrors: Record<string, string> = {};
@@ -128,6 +134,9 @@ export async function checkoutAction(
   if (!jobTitle) fieldErrors.jobTitle = "Jabatan belum diisi.";
   if (!address) fieldErrors.address = "Alamat belum diisi.";
   if (!accountId) fieldErrors.accountId = "Pilih rekening pembayaran.";
+  if (referral && !(await findReferral(referral))) {
+    fieldErrors.referral = "Kode referral tidak ditemukan.";
+  }
   if (!(proof instanceof File) || proof.size === 0) {
     fieldErrors.proof = "Unggah bukti transfer berupa gambar.";
   }
@@ -154,9 +163,16 @@ export async function checkoutAction(
     accountId,
     proofFile: saved.name,
     plans: site.pricing.plans,
+    referralCode: referral,
   });
   if (!result.ok) {
     await removeProof(saved.name);
+    if (result.error === "referral") {
+      return {
+        message: "Kode referral tidak ditemukan.",
+        fieldErrors: { referral: "Kode referral tidak ditemukan." },
+      };
+    }
     const planError = PLAN_ERRORS[result.error];
     if (planError) {
       return { message: planError.message, fieldErrors: {}, backToPlans: planError.backToPlans };
@@ -197,6 +213,69 @@ export async function rejectOrderAction(formData: FormData) {
   if (!admin) redirect("/login");
   await rejectOrder(String(formData.get("id") ?? ""));
   redirect("/dashboard/transaksi");
+}
+
+export async function previewReferralAction(planName: string, code: string) {
+  const normalized = normalizeReferralCode(code);
+  if (!normalized) return { ok: true as const, empty: true as const };
+  const site = await getSite();
+  const plan = site.pricing.plans.find((item) => item.name === planName);
+  if (!plan) return { ok: false as const, error: "Paket tidak ditemukan." };
+  const found = await findReferral(normalized);
+  if (!found) return { ok: false as const, error: "Kode referral tidak ditemukan." };
+  const list = parseIdr(plan.price);
+  const discount = Math.min(found.discountAmount, list);
+  const payable = payableAmount(list, found.discountAmount);
+  return {
+    ok: true as const,
+    empty: false as const,
+    name: found.name,
+    code: found.code,
+    discount,
+    payable: formatIdr(payable),
+    discountLabel: formatIdr(discount),
+  };
+}
+
+function referralInput(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const code = normalizeReferralCode(String(formData.get("code") ?? ""));
+  const discountAmount = parseIdr(String(formData.get("discount") ?? ""));
+  return { name, code, discountAmount };
+}
+
+export async function addReferralAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const input = referralInput(formData);
+  if (!input.name || !validReferralCode(input.code) || input.discountAmount <= 0) {
+    redirect("/dashboard/referral?error=1");
+  }
+  const saved = await addReferral(input);
+  if (!saved.ok) redirect("/dashboard/referral?error=taken");
+  redirect("/dashboard/referral?saved=1");
+}
+
+export async function updateReferralAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const id = String(formData.get("id") ?? "");
+  const input = referralInput(formData);
+  if (!id || !input.name || !validReferralCode(input.code) || input.discountAmount <= 0) {
+    redirect(`/dashboard/referral?edit=${encodeURIComponent(id)}&error=1`);
+  }
+  const saved = await updateReferral({ id, ...input });
+  if (!saved.ok) redirect(`/dashboard/referral?edit=${encodeURIComponent(id)}&error=taken`);
+  redirect("/dashboard/referral?saved=1");
+}
+
+export async function removeReferralAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const result = await removeReferral(String(formData.get("id") ?? ""));
+  if (!result.ok && result.error === "used") redirect("/dashboard/referral?error=used");
+  if (!result.ok) redirect(`/dashboard/referral?error=${encodeURIComponent(result.error)}`);
+  redirect("/dashboard/referral?saved=1");
 }
 
 export async function addAccountAction(formData: FormData) {
