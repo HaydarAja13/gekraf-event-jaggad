@@ -39,12 +39,12 @@
   "hero": {
     "badge": "National Business Growth Class",
     "titleLine1": "BUSINESS",
-    "titleGold": "MASTERY",
-    "titleRest": "SKILL",
+    "titleGold": "SKILL",
+    "titleRest": "MASTERY",
     "subtitle": "Build Your Business. Lead Your People. Scale Your Impact.",
     "body": "Kelas intensif 1 hari yang memadukan strategi pertumbuhan bisnis, kepemimpinan tim, dan pemasaran untuk membantu Anda membangun bisnis secara lebih terstruktur.",
     "date": "Sabtu, 21 November 2026",
-    "time": "08.00 – 12.30 WIB",
+    "time": "07.00 – 17.00 WIB",
     "venue": "Gets Hotel Semarang",
     "city": "Semarang, Jawa Tengah",
     "ctaLabel": "Daftar Sekarang",
@@ -147,7 +147,7 @@
       },
       {
         "name": "Deryansha Azhary",
-        "title": "Kassiolusi · Marketing, Brand & Business",
+        "title": "Kasisolusi · Marketing, Brand & Business",
         "badge": "GROW",
         "headline": "Bangun Brand yang Menarik dan Menghasilkan Penjualan",
         "src": "/speakers/deryansha-azhary.png",
@@ -184,10 +184,6 @@
       {
         "title": "Executive Business Talk & Q&A",
         "desc": "Diskusi langsung dengan para pembicara."
-      },
-      {
-        "title": "90-Day Business Action Plan",
-        "desc": "Menyusun rencana implementasi untuk 90 hari ke depan."
       }
     ]
   },
@@ -250,7 +246,7 @@
         "name": "EARLYBIRD",
         "priceWas": "Rp 1.499.000",
         "price": "Rp 999.000",
-        "slots": "80",
+        "slots": "20",
         "features": [
           "Akses kelas 1 hari",
           "Workbook digital",

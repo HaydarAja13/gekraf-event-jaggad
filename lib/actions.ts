@@ -73,9 +73,35 @@ export async function uploadImageAction(formData: FormData) {
   return { ok: true as const, src: `/uploads/cms/${saved.name}` };
 }
 
-export async function checkoutAction(formData: FormData) {
+export type CheckoutState = {
+  message: string;
+  fieldErrors: Record<string, string>;
+  backToPlans?: boolean;
+} | null;
+
+const PLAN_ERRORS: Record<string, { message: string; backToPlans?: boolean }> = {
+  account: {
+    message: "Rekening pembayaran ini sudah tidak tersedia. Muat ulang halaman ini lalu coba lagi.",
+  },
+  slot: {
+    message: "Slot paket ini baru saja habis. Pilih paket lain untuk melanjutkan.",
+    backToPlans: true,
+  },
+  locked: {
+    message: "Paket ini belum dibuka. Habiskan slot paket sebelumnya dulu.",
+    backToPlans: true,
+  },
+};
+
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** Form state for the checkout ticket: errors come back as state, never as a
+ *  redirect, so nobody loses a filled form to a typo. */
+export async function checkoutAction(
+  _state: CheckoutState,
+  formData: FormData,
+): Promise<CheckoutState> {
   const planName = String(formData.get("plan") ?? "");
-  const back = `/checkout?plan=${encodeURIComponent(planName)}`;
   const site = await getSite();
   const plan = site.pricing.plans.find((item) => item.name === planName);
   if (!plan) redirect("/#harga");
@@ -88,13 +114,33 @@ export async function checkoutAction(formData: FormData) {
   const address = String(formData.get("address") ?? "").trim();
   const accountId = String(formData.get("accountId") ?? "");
   const proof = formData.get("proof");
-  if (!fullName || !email.includes("@") || !whatsapp || !institution || !jobTitle || !address) {
-    redirect(`${back}&error=fields`);
-  }
-  if (!(proof instanceof File)) redirect(`${back}&error=file`);
 
-  const saved = await uploadProof(proof);
-  if (!saved.ok) redirect(`${back}&error=file`);
+  const fieldErrors: Record<string, string> = {};
+  if (!fullName) fieldErrors.fullName = "Tulis nama lengkap sesuai identitas.";
+  if (!email) fieldErrors.email = "Email belum diisi.";
+  else if (!EMAIL_SHAPE.test(email)) {
+    fieldErrors.email = "Format email belum benar — contoh: nama@perusahaan.co.id";
+  }
+  const digits = whatsapp.replace(/\D/g, "");
+  if (!whatsapp) fieldErrors.whatsapp = "Nomor WhatsApp belum diisi.";
+  else if (digits.length < 9) fieldErrors.whatsapp = "Nomor WhatsApp terlalu pendek.";
+  if (!institution) fieldErrors.institution = "Instansi belum diisi.";
+  if (!jobTitle) fieldErrors.jobTitle = "Jabatan belum diisi.";
+  if (!address) fieldErrors.address = "Alamat belum diisi.";
+  if (!accountId) fieldErrors.accountId = "Pilih rekening pembayaran.";
+  if (!(proof instanceof File) || proof.size === 0) {
+    fieldErrors.proof = "Unggah bukti transfer berupa gambar.";
+  }
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return {
+      message: "Pendaftaran belum terkirim. Periksa bagian yang ditandai di bawah.",
+      fieldErrors,
+    };
+  }
+
+  const saved = await uploadProof(proof as File);
+  if (!saved.ok) return { message: saved.error, fieldErrors: { proof: saved.error } };
 
   const result = await createOrder({
     fullName,
@@ -111,7 +157,14 @@ export async function checkoutAction(formData: FormData) {
   });
   if (!result.ok) {
     await removeProof(saved.name);
-    redirect(`${back}&error=${result.error}`);
+    const planError = PLAN_ERRORS[result.error];
+    if (planError) {
+      return { message: planError.message, fieldErrors: {}, backToPlans: planError.backToPlans };
+    }
+    return {
+      message: "Pendaftaran belum bisa diproses. Periksa kembali isian Anda lalu kirim ulang.",
+      fieldErrors: {},
+    };
   }
   redirect("/checkout/terkirim");
 }

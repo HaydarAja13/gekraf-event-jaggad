@@ -314,3 +314,227 @@ body {
 .delay-3 {
   animation-delay: 0.35s;
 }
+
+/* ---------------------------------------------------------------------------
+   Checkout ticket (/checkout)
+   The page is the ticket: an A4 poster stub perforated off a white body.
+   The two punched notches are a mask, not painted circles, so whatever sits
+   behind the ticket — tint, glow, ground — shows through the hole, and the
+   drop shadow follows the notched silhouette instead of the plain rectangle.
+--------------------------------------------------------------------------- */
+
+.ticket-shadow {
+  filter: drop-shadow(0 24px 34px rgba(2, 153, 195, 0.24));
+}
+
+/* Contains the ticket's rounded silhouette and is the measuring stick for the
+   seam: cqw below means "percent of the ticket's own width", so the horizontal
+   seam can sit exactly on the A4 sheet's bottom edge at any width. */
+.ticket-frame {
+  container-type: inline-size;
+  border-radius: 28px;
+  overflow: clip;
+}
+
+.ticket-punch {
+  --ticket-stub: 396px;
+  -webkit-mask-image:
+    radial-gradient(circle at var(--ticket-stub) 0, transparent 15px, #000 15.5px),
+    radial-gradient(circle at var(--ticket-stub) 100%, transparent 15px, #000 15.5px);
+  mask-image:
+    radial-gradient(circle at var(--ticket-stub) 0, transparent 15px, #000 15.5px),
+    radial-gradient(circle at var(--ticket-stub) 100%, transparent 15px, #000 15.5px);
+  /* Both layers must be intersected, or the union of the two "everything
+     except one hole" images cancels the holes out. */
+  mask-composite: intersect;
+}
+
+/* Below this the form column is too narrow to give the pamphlet more width. */
+@media (min-width: 1200px) {
+  .ticket-punch {
+    --ticket-stub: 520px;
+  }
+}
+
+/* Below lg the ticket stacks: the seam runs horizontally along the bottom of
+   the A4 sheet. Stub pad 16px each side, sheet 210:297 -> seam sits at
+   2*16 + (100cqw - 32) * 297/210 = 141.4286cqw - 13.257px. */
+@media (max-width: 1023.98px) {
+  .ticket-punch {
+    --seam-y: calc(141.4286cqw - 13.257px);
+    -webkit-mask-image:
+      radial-gradient(circle at 0 var(--seam-y), transparent 15px, #000 15.5px),
+      radial-gradient(circle at 100% var(--seam-y), transparent 15px, #000 15.5px);
+    mask-image:
+      radial-gradient(circle at 0 var(--seam-y), transparent 15px, #000 15.5px),
+      radial-gradient(circle at 100% var(--seam-y), transparent 15px, #000 15.5px);
+  }
+}
+
+/* The poster stub keeps A4 proportions at any width and scales its own type
+   with its container, so the same sheet reads at 200px and at 396px. */
+.poster-a4 {
+  container-type: inline-size;
+  position: relative;
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background:
+    radial-gradient(120% 78% at 84% 2%, rgba(255, 255, 255, 0.24), transparent 60%),
+    linear-gradient(162deg, var(--gekraf-cyan-bright), var(--gekraf-cyan-deep));
+}
+
+/* Artwork is 812×1024. Matching it lets the sheet grow wider than A4
+   without dropping the date bar below a 1080p window. */
+@media (min-width: 1200px) {
+  .poster-a4 {
+    aspect-ratio: 812 / 1024;
+  }
+}
+
+.poster-a4 > * {
+  position: relative;
+}
+
+.poster-a4 .p-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.9cqw;
+  padding: 4.2cqw 5.2cqw 0;
+  font-size: 2.9cqw;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.poster-a4 .p-mark {
+  display: grid;
+  place-items: center;
+  width: 5.4cqw;
+  height: 5.4cqw;
+  border-radius: 1.7cqw;
+  background: #fff;
+  color: var(--gekraf-cyan-deep);
+  font-size: 2.1cqw;
+  letter-spacing: 0.02em;
+}
+
+.poster-a4 .p-band {
+  margin-top: 3.2cqw;
+  padding: 2.3cqw 5.2cqw;
+  background: var(--gekraf-gold);
+  color: var(--gekraf-ink);
+  font-size: 3.05cqw;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.poster-a4 .p-title {
+  padding: 5.4cqw 5.2cqw 0;
+  font-family: var(--font-playfair), serif;
+  font-size: 11.6cqw;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.poster-a4 .p-title em {
+  font-style: normal;
+  color: var(--gekraf-gold);
+}
+
+.poster-a4 .p-info {
+  margin: 5cqw 5.2cqw 0;
+  padding: 3.8cqw 4.2cqw 4.2cqw;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 3.6cqw;
+  background: rgba(11, 14, 22, 0.28);
+}
+
+.poster-a4 .p-info b {
+  display: block;
+  font-size: 3.5cqw;
+  font-weight: 800;
+}
+
+.poster-a4 .p-info span {
+  display: block;
+  margin: 0.6cqw 0 2.6cqw;
+  font-size: 2.9cqw;
+  opacity: 0.9;
+}
+
+.poster-a4 .p-info span:last-child {
+  margin-bottom: 0;
+}
+
+.poster-a4 .p-foot {
+  margin-top: auto;
+  padding: 2.8cqw 5.2cqw 3cqw;
+  border-top: 1px dashed rgba(255, 255, 255, 0.45);
+  font-size: 2.75cqw;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.poster-a4 .p-tag {
+  position: absolute;
+  top: 3.6cqw;
+  right: 3.6cqw;
+  padding: 1.5cqw 3cqw;
+  border-radius: 999px;
+  background: rgba(11, 14, 22, 0.72);
+  color: #fff;
+  font-size: 2.6cqw;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+/* One authored entrance for the ticket, and the stamp that lands on the
+   receipt page. Both collapse under reduced motion. */
+@keyframes ticket-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.5);
+  }
+  70% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+.animate-ticket-in {
+  animation: ticket-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-stamp-in {
+  animation: stamp-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-ticket-in,
+  .animate-stamp-in,
+  .animate-pulse,
+  .animate-spin {
+    animation: none;
+  }
+}
