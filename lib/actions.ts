@@ -8,12 +8,14 @@ import { redirect } from "next/navigation";
 import { getAdmin, login, logout } from "@/lib/auth";
 import { sendTicketEmail } from "@/lib/mail";
 import { formatIdr, normalizeReferralCode, parseIdr, payableAmount, validReferralCode } from "@/lib/referral";
+import { makeTicketNo } from "@/lib/slots";
 import {
   addAccount,
   addReferral,
   approveOrder,
   createOrder,
   findReferral,
+  orderById,
   rejectOrder,
   removeAccount,
   removeProof,
@@ -22,6 +24,7 @@ import {
   updateReferral,
   uploadProof,
 } from "@/lib/sales";
+import { readSmtpForm, saveSmtp, validEmail, verifySmtp } from "@/lib/smtp";
 import { getSite, saveSection } from "@/lib/site";
 
 export async function loginAction(formData: FormData) {
@@ -185,27 +188,102 @@ export async function checkoutAction(
   redirect("/checkout/terkirim");
 }
 
+async function requestOrigin() {
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "127.0.0.1:3000";
+  return `${proto}://${host}`;
+}
+
+async function eventMail(input: { fullName: string; plan: string; amount: string; ticketNo: string; to: string }) {
+  const site = await getSite();
+  const origin = await requestOrigin();
+  const event = [site.hero.titleLine1, site.hero.titleGold, site.hero.titleRest].join(" ").replace(/\s+/g, " ").trim();
+  return sendTicketEmail({
+    ...input,
+    pageUrl: `${origin}/tiket/${input.ticketNo}`,
+    downloadUrl: `${origin}/tiket/${input.ticketNo}/unduh`,
+    when: `${site.hero.date}, ${site.hero.time}`,
+    where: `${site.hero.venue}, ${site.hero.city}`,
+    event: event || site.navbar.brand,
+    badge: site.hero.badge,
+  });
+}
+
+function pengirimanError(message: string): never {
+  redirect(`/dashboard/pengiriman?error=${encodeURIComponent(message)}`);
+}
+
 export async function approveOrderAction(formData: FormData) {
   const admin = await getAdmin();
   if (!admin) redirect("/login");
   const id = String(formData.get("id") ?? "");
-  const site = await getSite();
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "127.0.0.1:3000";
-  const origin = `${proto}://${host}`;
   const result = await approveOrder(id, (order, ticketNo) =>
-    sendTicketEmail({
-      order,
+    eventMail({
+      fullName: order.fullName,
+      plan: order.plan,
+      amount: order.amount,
       ticketNo,
-      pageUrl: `${origin}/tiket/${ticketNo}`,
-      downloadUrl: `${origin}/tiket/${ticketNo}/unduh`,
-      when: `${site.hero.date}, ${site.hero.time}`,
-      where: `${site.hero.venue}, ${site.hero.city}`,
+      to: order.email,
     }),
   );
   if (!result.ok) redirect(`/dashboard/transaksi?error=${encodeURIComponent(result.error)}`);
   redirect("/dashboard/transaksi?saved=1");
+}
+
+export async function saveSmtpAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const parsed = readSmtpForm(formData);
+  if (!parsed.ok) pengirimanError(parsed.error);
+  const saved = await saveSmtp(parsed.value);
+  if (!saved.ok) pengirimanError(saved.error);
+  const check = await verifySmtp();
+  if (!check.ok) {
+    redirect(`/dashboard/pengiriman?warn=${encodeURIComponent(`Tersimpan, tetapi koneksi SMTP gagal: ${check.error}`)}`);
+  }
+  redirect("/dashboard/pengiriman?saved=1");
+}
+
+export async function sendCustomTicketAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const to = String(formData.get("to") ?? "").trim();
+  if (!validEmail(to)) pengirimanError("Email penerima tiket belum benar.");
+  const order = await orderById(String(formData.get("orderId") ?? ""));
+  if (!order || order.status !== "approved" || !order.ticketNo) {
+    pengirimanError("Pilih tiket yang sudah di-ACC.");
+  }
+  const sent = await eventMail({
+    fullName: order.fullName,
+    plan: order.plan,
+    amount: order.amount,
+    ticketNo: order.ticketNo,
+    to,
+  });
+  if (!sent.ok) pengirimanError(sent.error);
+  redirect("/dashboard/pengiriman?sent=1");
+}
+
+export async function sendSmtpProbeAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const to = String(formData.get("to") ?? "").trim();
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  if (!fullName) pengirimanError("Nama pada email tiket wajib diisi.");
+  if (!validEmail(to)) pengirimanError("Email penerima belum benar.");
+  const site = await getSite();
+  const planName = String(formData.get("plan") ?? "");
+  const plan = site.pricing.plans.find((item) => item.name === planName) ?? site.pricing.plans[0];
+  const sent = await eventMail({
+    fullName,
+    plan: plan?.name ?? "Tiket",
+    amount: plan?.price ?? "",
+    ticketNo: makeTicketNo(),
+    to,
+  });
+  if (!sent.ok) pengirimanError(sent.error);
+  redirect("/dashboard/pengiriman?probe=1");
 }
 
 export async function rejectOrderAction(formData: FormData) {
