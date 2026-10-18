@@ -176,7 +176,7 @@ function ProofPick({ error }: { error?: string }) {
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        className={`flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed px-4 py-4 transition focus-within:ring-2 focus-within:ring-gekraf-cyan/30 sm:px-5 ${
+        className={`relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed px-4 py-4 transition focus-within:ring-2 focus-within:ring-gekraf-cyan/30 sm:px-5 ${
           dragging
             ? "border-gekraf-cyan bg-[#e8f6fa]"
             : invalid
@@ -206,10 +206,11 @@ function ProofPick({ error }: { error?: string }) {
         </span>
         <input
           ref={inputRef}
+          id="proof"
           type="file"
           accept="image/*"
           required
-          className="sr-only"
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           aria-invalid={invalid ? true : undefined}
           aria-describedby={invalid ? "proof-error" : undefined}
           onChange={(event) => accept(event.target.files?.[0])}
