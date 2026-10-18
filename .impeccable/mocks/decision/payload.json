@@ -1,0 +1,60 @@
+{
+  "title": "Pilih komposisi halaman sales tiket",
+  "question": "Tiga struktur halaman /checkout untuk kelas bisnis 21 November 2026. Visual world tetap milik landing page (cyan + gold, Playfair). Pilih satu untuk dibangun.",
+  "options": [
+    {
+      "id": "spine",
+      "kind": "assigned",
+      "label": "Jalur Tiga Beats",
+      "kicker": "THE ROLL",
+      "lineage": "meja registrasi acara — buku tamu, slip setoran, tata cara penerimaan",
+      "thesis": "Checkout sebagai satu jalur pendaftaran bernomor: 01 Data, 02 Pembayaran, 03 Bukti — dengan rel langkah yang menyala saat maju dan poster A4 menemani dari sisi kanan.",
+      "palette": ["#0299c3", "#f2cb19", "#0b0e16", "#f0f1f5", "#ffffff"],
+      "materials": ["kertas putih", "rel emas satu garis", "bingkai A4"],
+      "viewport": "Rel tiga langkah di kiri menyala emas pada langkah 01; di tengah lembar putih Data Pemesan dengan enam isian; di kanan poster A4 portrait menggantung sebagai pendamping sticky.",
+      "risk": "Rel tiga langkah di satu halaman bisa terbaca sebagai kemajuan palsu bila pengisian masih satu formulir; disiplin penandaan wajib jujur.",
+      "raised": [
+        {
+          "from": "clay-ceramics-fracture-coiled-earth-tower",
+          "raise": "Rel langkah disusun sebagai baris-baris yang terlihat jahitannya, bukan satu ikon generik."
+        },
+        {
+          "from": "magnetism-electricity-plasma-hand-bent-neon-circuit",
+          "raise": "Satu garis menerus yang menyala saat langkahnya tercapai — bukan tiga indikator terpisah."
+        },
+        {
+          "from": "pop-culture-shelf-spy-dossier-title-sequence",
+          "raise": "Momen stempel 'TERKIRIM' mendarat keras di akhir, bukan sekadar halaman sukses."
+        }
+      ],
+      "html": ".impeccable/mocks/decision/spine.html"
+    },
+    {
+      "id": "desk",
+      "kind": "dealt",
+      "label": "Meja Pendaftaran",
+      "lineage": "meja registrasi hotel: pamflet berdiri di samping buku pendaftaran",
+      "thesis": "Dua lembar A4 di atas meja gelap — kiri pamflet acara, kanan formulir pendaftaran; yang Anda isi secara fisik bersebelahan dengan yang Anda hadiri.",
+      "palette": ["#0b0e16", "#0299c3", "#f2cb19", "#ffffff", "#062b36"],
+      "materials": ["meja gelap", "dua lembar kertas", "stempel merah"],
+      "viewport": "Meja gelap penuh dengan dua lembar putih berbayang lembut: pamflet A4 berdiri miring di kiri, lembar formulir dengan strip paket EARLYBIRD di kanan.",
+      "risk": "Metafora meja bisa menutupi kecepatan mengisi formulir bila pengisian pecah ke banyak lembar.",
+      "html": ".impeccable/mocks/decision/desk.html"
+    },
+    {
+      "id": "ticket",
+      "kind": "dealt",
+      "label": "Tiket Berperforasi",
+      "lineage": "struktur tiket pesawat: stub, badan, garis sobek, nomor tiket",
+      "thesis": "Halaman itu sendiri adalah tiket: stub A4 di kiri memuat poster acara, badan tiket memuat harga dan data pemesan, garis sobek memisahkan pembayaran.",
+      "palette": ["#0299c3", "#f2cb19", "#0b0e16", "#ffffff", "#f0f1f5"],
+      "materials": ["perforasi", "garis sobek putus-putus", "nomor tiket"],
+      "viewport": "Satu kartu tiket besar di tengah halaman: stub A4 cyan berperforasi di kiri, badan putih dengan paket + harga coret + enam isian, garis sobek menandai bagian pembayaran.",
+      "risk": "Anatomi tiket memaksa harga dan data berdampingan; bila rapat berlebih, isian jadi sempit di layar kecil.",
+      "html": ".impeccable/mocks/decision/ticket.html"
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "buildPath": { "value": "code" }
+}

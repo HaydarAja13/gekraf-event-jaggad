@@ -76,6 +76,11 @@ export type Site = {
     ctaHref: string;
     plans: { name: string; priceWas: string; price: string; slots: string; features: string[] }[];
   };
+  social: {
+    badge: string;
+    line: string;
+    items: { name: string; role: string; src: string }[];
+  };
   faq: {
     badge: string;
     title: string;
@@ -105,6 +110,11 @@ export const SECTIONS = [
   { id: "curriculum", label: "Kurikulum", hint: "Judul dan daftar modul." },
   { id: "why", label: "Kenapa Memilih", hint: "Alasan dan empat benefit." },
   { id: "testimonials", label: "Testimoni", hint: "Nama, peran, kutipan, dan foto." },
+  {
+    id: "social",
+    label: "Pembelian Terbaru",
+    hint: "Popup kiri bawah yang muncul berulang: nama, jabatan, dan foto pembeli.",
+  },
   { id: "pricing", label: "Harga", hint: "Paket, harga coret, harga asli, dan jumlah slot." },
   { id: "faq", label: "FAQ", hint: "Pertanyaan dan jawaban." },
   { id: "cta", label: "Ajakan Terakhir", hint: "Penutup, tombol daftar, dan WhatsApp." },

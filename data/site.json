@@ -244,7 +244,7 @@
     "plans": [
       {
         "name": "EARLYBIRD",
-        "priceWas": "Rp 1.499.000",
+        "priceWas": "Rp 3.600.000",
         "price": "Rp 999.000",
         "slots": "20",
         "features": [
@@ -256,7 +256,7 @@
       },
       {
         "name": "NORMAL",
-        "priceWas": "Rp 1.750.000",
+        "priceWas": "Rp 3.600.000",
         "price": "Rp 1.250.000",
         "slots": "80",
         "features": [
@@ -268,7 +268,7 @@
       },
       {
         "name": "LAST CALL",
-        "priceWas": "Rp 2.000.000",
+        "priceWas": "Rp 3.600.000",
         "price": "Rp 1.500.000",
         "slots": "40",
         "features": [
@@ -277,6 +277,52 @@
           "Sertifikat peserta",
           "Networking umum"
         ]
+      }
+    ]
+  },
+  "social": {
+    "badge": "Pembeli Baru",
+    "line": "Telah membeli tiket Early Bird",
+    "items": [
+      {
+        "name": "Andini Putri",
+        "role": "Business Owner",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=AP"
+      },
+      {
+        "name": "Bagus Saputra",
+        "role": "Marketing Manager",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=BS"
+      },
+      {
+        "name": "Citra Lestari",
+        "role": "Founder",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=CL"
+      },
+      {
+        "name": "Dimas Wibowo",
+        "role": "CEO",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=DW"
+      },
+      {
+        "name": "Fitri Handayani",
+        "role": "Entrepreneur",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=FH"
+      },
+      {
+        "name": "Gilang Ramadhan",
+        "role": "Operations Manager",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=GR"
+      },
+      {
+        "name": "Hana Maulida",
+        "role": "Content Creator",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=HM"
+      },
+      {
+        "name": "Rizky Pratama",
+        "role": "Freelance Designer",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=RP"
       }
     ]
   },

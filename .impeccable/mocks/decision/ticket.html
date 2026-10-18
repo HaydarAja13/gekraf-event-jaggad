@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Tiket Berperforasi</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{width:1440px;height:900px;overflow:hidden;background:linear-gradient(180deg,#dcf1f8 0%,#f0f1f5 340px);color:#0b0e16;font-family:"Plus Jakarta Sans",system-ui,sans-serif}
+  .nav{height:72px;background:#fff;border-bottom:1px solid rgba(11,14,22,.1);display:flex;align-items:center;justify-content:space-between;padding:0 44px}
+  .brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  .mark{width:32px;height:32px;border-radius:9px;background:#0299c3;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800}
+  .pill{background:#f2cb19;border-radius:999px;padding:11px 24px;font-size:15px;font-weight:800}
+  .head{max-width:1180px;margin:26px auto 0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 4px}
+  .head p{font-size:13px;font-weight:800;letter-spacing:.16em;color:#0299c3;text-transform:uppercase}
+  .head h1{font-family:"Playfair Display",serif;font-size:40px;font-weight:800;line-height:1.05;margin-top:8px}
+  .head .slot{font-size:14px;color:#686866;text-align:right;line-height:1.5}
+  /* ---- the ticket ---- */
+  .ticket{max-width:1180px;margin:18px auto 0;background:#fff;border-radius:28px;display:grid;grid-template-columns:396px minmax(0,1fr);
+    box-shadow:0 30px 70px rgba(2,153,195,.18);overflow:hidden;position:relative}
+  /* stub = A4 poster placeholder */
+  .stub{position:relative;aspect-ratio:210/297;background:#0299c3;color:#fff;display:flex;flex-direction:column;overflow:hidden}
+  .stub-rings{position:absolute;inset:0;background:radial-gradient(240px 200px at 82% 6%,rgba(255,255,255,.22),transparent 62%)}
+  .a4tag{position:absolute;top:14px;right:14px;background:#0b0e16;color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.1em;border-radius:999px;padding:6px 11px;z-index:2}
+  .stub-top{position:relative;display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.12em;padding:18px 20px 10px}
+  .stub-mark{width:22px;height:22px;border-radius:7px;background:#0b0e16;display:grid;place-items:center;font-size:8.5px}
+  .stub-band{position:relative;background:#f2cb19;color:#0b0e16;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 20px}
+  .stub h2{position:relative;font-family:"Playfair Display",serif;font-size:44px;line-height:1;font-weight:800;padding:24px 20px 0}
+  .stub-info{position:relative;margin:22px 20px 0;background:rgba(11,14,22,.28);border:1px solid rgba(255,255,255,.35);border-radius:15px;padding:15px}
+  .stub-info b{display:block;font-size:14px;font-weight:800}
+  .stub-info span{display:block;font-size:11.5px;opacity:.9;margin:2px 0 10px}
+  .stub-foot{position:relative;margin-top:auto;padding:14px 20px;font-size:11px;text-align:center;opacity:.85;border-top:1px dashed rgba(255,255,255,.45)}
+  /* perforation + body */
+  .tear{position:absolute;left:396px;top:0;bottom:0;width:0;border-left:2px dashed #d3dde2}
+  .notch{position:absolute;left:381px;width:30px;height:30px;border-radius:999px;background:#eaf3f7;box-shadow:inset 0 0 0 1px rgba(11,14,22,.06)}
+  .notch.top{top:-15px}.notch.bottom{bottom:-15px}
+  .body{padding:30px 34px 26px}
+  .trow{display:flex;align-items:center;justify-content:space-between}
+  .chip{background:#e8f6fa;border:1px solid #cfe9f1;color:#016b86;border-radius:999px;padding:7px 15px;font-size:13px;font-weight:800;letter-spacing:.08em}
+  .trow .ghost{font-size:12.5px;font-weight:800;letter-spacing:.14em;color:#8a919c;text-transform:uppercase}
+  .price{display:flex;align-items:flex-end;gap:14px;margin-top:18px}
+  .price .was{font-size:19px;color:#f0301f;text-decoration:line-through;font-weight:700}
+  .price .now{font-size:42px;font-weight:800;color:#0299c3;letter-spacing:-.02em;line-height:1}
+  .price small{font-size:13px;color:#686866;margin-left:auto;max-width:180px;line-height:1.5;text-align:right}
+  .rule{margin:22px 0 16px;border-top:1px solid #eef1f3}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:13px 16px}
+  .f{display:block;font-size:13.5px;font-weight:700}
+  .f.wide{grid-column:1/-1}
+  .f input,.f textarea{margin-top:6px;width:100%;border:1px solid #dfe4e8;border-radius:11px;background:#fbfcfd;padding:11px 13px;font:inherit;font-weight:600;font-size:15px;color:#8a919c}
+  .f textarea{height:54px;resize:none}
+  .payline{margin-top:20px;display:flex;align-items:center;gap:14px;color:#8a919c;font-size:12.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+  .payline::before,.payline::after{content:"";flex:1;border-top:2px dashed #d3dde2}
+</style>
+</head>
+<body>
+  <div class="nav">
+    <div class="brand"><span class="mark">BSM</span> Business Skill Mastery</div>
+    <div class="pill">Daftar Sekarang →</div>
+  </div>
+  <div class="head">
+    <div><p>Pendaftaran Tiket</p><h1>Satu tiket, satu kursi, satu hari.</h1></div>
+    <p class="slot">Kuota terbatas untuk 200 peserta<br>Gets Hotel Semarang · 21 November 2026</p>
+  </div>
+  <div class="ticket">
+    <figure class="stub">
+      <span class="stub-rings"></span>
+      <span class="a4tag">A4 · 210×297</span>
+      <div class="stub-top"><span class="stub-mark">BSM</span> BUSINESS SKILL MASTERY</div>
+      <div class="stub-band">National Business Growth Class</div>
+      <h2>Business<br>Skill<br>Mastery</h2>
+      <div class="stub-info"><b>Sabtu, 21 November 2026</b><span>08.00 – 12.30 WIB</span><b>Gets Hotel Semarang</b><span>Semarang, Jawa Tengah</span></div>
+      <div class="stub-foot">Pamflet acara · ganti dengan poster resmi</div>
+    </figure>
+    <span class="tear"></span><span class="notch top"></span><span class="notch bottom"></span>
+    <section class="body">
+      <div class="trow"><span class="chip">EARLYBIRD</span><span class="ghost">Data pemesan</span></div>
+      <div class="price">
+        <span class="was">Rp 1.499.000</span><span class="now">Rp 999.000</span>
+        <small>Sudah termasuk workbook dan sertifikat peserta.</small>
+      </div>
+      <div class="rule"></div>
+      <div class="fields">
+        <label class="f wide">Nama lengkap<input value="Budi Santoso"></label>
+        <label class="f">Email<input value="budi@perusahaan.co.id"></label>
+        <label class="f">WhatsApp<input value="0822 4198 9936"></label>
+        <label class="f">Instansi<input value="PT Maju Bersama"></label>
+        <label class="f">Jabatan<input value="Direktur"></label>
+      </div>
+      <div class="payline">Pembayaran</div>
+    </section>
+  </div>
+</body>
+</html>

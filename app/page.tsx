@@ -8,6 +8,7 @@ import Hero from "./components/Hero";
 import Navbar from "./components/Navbar";
 import PainPoints from "./components/PainPoints";
 import Pricing from "./components/Pricing";
+import SocialProof from "./components/SocialProof";
 import Speakers from "./components/Speakers";
 import Testimonials from "./components/Testimonials";
 import WhyChoose from "./components/WhyChoose";
@@ -41,6 +42,7 @@ export default async function Home() {
       </Suspense>
       <FAQ content={site.faq} />
       <FinalCTA content={site.cta} />
+      <SocialProof content={site.social} />
     </main>
   );
 }
