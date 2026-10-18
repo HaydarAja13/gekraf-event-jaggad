@@ -1,3 +1,5 @@
+import type { MailAttachment } from "@/lib/smtp";
+
 export type TicketMail = {
   fullName: string;
   plan: string;
@@ -17,6 +19,7 @@ export type TicketMail = {
   supportWhatsapp?: string;
   supportLabel?: string;
   organizer?: string;
+  qrSrc?: string;
 };
 
 export function ticketMessage(input: TicketMail) {
@@ -33,7 +36,6 @@ export function ticketMessage(input: TicketMail) {
   const subtitle = escapeHtml(
     input.subtitle || "Solusi In This Economy · Exclusive Masterclass",
   );
-  const pamphletUrl = escapeHtml(input.pamphletUrl || "/pamflet.jpeg");
   const rawGreeting =
     input.greeting ||
     "Halo {name}, pembayaran paket {plan} telah kami terima dan terkonfirmasi. Simpan e-tiket resmi ini dan tunjukkan kepada panitia pada hari acara.";
@@ -63,8 +65,9 @@ export function ticketMessage(input: TicketMail) {
           "E-tiket ini bersifat unik dan hanya berlaku untuk 1 (satu) kali penukaran wristband / ID Card resmi.",
         ];
 
-  // Dynamic QR Code image service (renders crisp PNG in Gmail, Outlook, Apple Mail)
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(input.pageUrl)}&margin=6&color=0b1118&bgcolor=ffffff`;
+  // QR comes from the locally generated PNG attached as a CID part (see ticketMailPayload),
+  // so it never depends on an external image service.
+  const qrSrc = escapeHtml(input.qrSrc || "cid:tiket-qr");
 
   const instructionRows = instructions
     .map(
@@ -94,9 +97,6 @@ export function ticketMessage(input: TicketMail) {
       .email-card { border-radius: 16px !important; }
       .email-pad { padding-left: 16px !important; padding-right: 16px !important; }
       .email-header-pad { padding: 26px 16px 22px !important; }
-      .email-stack-col { display: block !important; width: 100% !important; padding-right: 0 !important; padding-left: 0 !important; }
-      .email-qr-col { display: block !important; width: 100% !important; border-left: none !important; border-top: 1px dashed #223749 !important; padding-left: 0 !important; padding-top: 20px !important; margin-top: 16px !important; text-align: center !important; }
-      .email-qr-col table { margin: 0 auto !important; }
       .email-btn-tbl { width: 100% !important; }
       .email-btn-tbl td { display: block !important; width: 100% !important; padding: 0 !important; }
       .email-btn-tbl td + td { margin-top: 10px !important; }
@@ -143,19 +143,17 @@ export function ticketMessage(input: TicketMail) {
             </td>
           </tr>
 
-          <!-- PAMPHLET POSTER SHOWCASE -->
+          <!-- OFFICIAL SPEAKERS STRIP (the poster itself stays a plain attachment) -->
           <tr>
-            <td class="email-pad" style="padding:28px 30px 14px; background-color:#ffffff;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#091924; border-radius:18px; overflow:hidden; border:1px solid #0299c3; box-shadow:0 8px 24px rgba(2,153,195,0.2); border-collapse:separate;">
+            <td class="email-pad" style="padding:26px 30px 0; background-color:#ffffff;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#091924; border-radius:16px; border:1px solid #0299c3; box-shadow:0 8px 24px rgba(2,153,195,0.18); border-collapse:separate;">
                 <tr>
-                  <td align="center" style="padding:16px 16px 0;">
-                    <img src="${pamphletUrl}" alt="Pamflet Resmi ${event}" width="508" style="display:block; width:100%; max-width:508px; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.1);" />
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding:14px 20px 16px;">
-                    <p style="margin:0; font-size:12px; font-weight:700; color:#F2CB19; letter-spacing:0.08em; text-transform:uppercase; line-height:1.4;">
+                  <td align="center" style="padding:15px 20px;">
+                    <p style="margin:0; font-size:12px; font-weight:700; color:#F2CB19; letter-spacing:0.08em; text-transform:uppercase; line-height:1.5;">
                       ★ PEMATERI RESMI: SANDIAGA UNO · BAYU SETYA BUDI · DERYANSHA AZHARY ★
+                    </p>
+                    <p style="margin:7px 0 0; font-size:11.5px; font-weight:600; color:#93d8e9; line-height:1.5;">
+                      Pamflet resmi acara tersedia pada lampiran email ini.
                     </p>
                   </td>
                 </tr>
@@ -227,53 +225,52 @@ export function ticketMessage(input: TicketMail) {
                   </td>
                 </tr>
 
-                <!-- TICKET DETAILS & QR CODE SPLIT -->
+                <!-- SCANNABLE QR ON TOP, ATTENDEE INFO BELOW -->
                 <tr>
-                  <td style="padding:22px 24px 24px;">
+                  <td style="padding:24px 24px 26px;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <!-- LEFT COLUMN: ATTENDEE INFO -->
-                        <td valign="top" class="email-stack-col" style="padding-right:20px;">
+                        <td align="center" style="padding-bottom:22px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:14px; border:2px solid #F2CB19;">
+                            <tr>
+                              <td align="center" style="padding:10px;">
+                                <img src="${qrSrc}" alt="QR Code Tiket ${ticketNo}" width="200" height="200" style="display:block; width:200px; height:200px; border-radius:8px;" />
+                              </td>
+                            </tr>
+                          </table>
+                          <p style="margin:12px 0 0; font-size:10.5px; font-weight:800; color:#F2CB19; letter-spacing:0.06em; text-align:center; line-height:1.4;">
+                            SCAN UNTUK CHECK-IN / REGISTRASI
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="border-top:1px dashed #223749; padding-top:20px;">
                           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
-                              <td style="padding-bottom:14px;">
+                              <td align="center" style="padding-bottom:16px;">
                                 <p style="margin:0; font-size:10px; font-weight:700; letter-spacing:0.14em; color:#7e93a6; text-transform:uppercase;">NAMA PESERTA</p>
-                                <p style="margin:4px 0 0; font-size:17px; font-weight:800; color:#ffffff; line-height:1.35;">${name}</p>
+                                <p style="margin:4px 0 0; font-size:18px; font-weight:800; color:#ffffff; line-height:1.35;">${name}</p>
                               </td>
                             </tr>
                             <tr>
-                              <td style="padding-bottom:14px;">
+                              <td align="center" style="padding-bottom:16px;">
                                 <p style="margin:0; font-size:10px; font-weight:700; letter-spacing:0.14em; color:#7e93a6; text-transform:uppercase;">TOTAL BIAYA</p>
                                 <p style="margin:4px 0 0; font-size:15px; font-weight:700; color:#38bdf8;">${amount}</p>
                               </td>
                             </tr>
                             <tr>
-                              <td style="padding-bottom:14px;">
-                                <p style="margin:0; font-size:10px; font-weight:700; letter-spacing:0.14em; color:#7e93a6; text-transform:uppercase;">WAKTU & TANGGAL</p>
-                                <p style="margin:4px 0 0; font-size:13.5px; font-weight:700; color:#e2e8f0; line-height:1.45;">${when}</p>
+                              <td align="center" style="padding-bottom:16px;">
+                                <p style="margin:0; font-size:10px; font-weight:700; letter-spacing:0.14em; color:#7e93a6; text-transform:uppercase;">WAKTU &amp; TANGGAL</p>
+                                <p style="margin:4px 0 0; font-size:14px; font-weight:700; color:#e2e8f0; line-height:1.45;">${when}</p>
                               </td>
                             </tr>
-                            <tr>
-                              <td>
-                                <p style="margin:0; font-size:10px; font-weight:700; letter-spacing:0.14em; color:#7e93a6; text-transform:uppercase;">LOKASI VENUE</p>
-                                <p style="margin:4px 0 0; font-size:13.5px; font-weight:700; color:#e2e8f0; line-height:1.45;">${where}</p>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-
-                        <!-- RIGHT COLUMN: SCANNABLE QR CODE -->
-                        <td width="160" valign="top" align="center" class="email-qr-col" style="border-left:1px dashed #223749; padding-left:18px;">
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:12px; padding:8px; border:2px solid #F2CB19; text-align:center;">
                             <tr>
                               <td align="center">
-                                <img src="${qrCodeUrl}" alt="QR Code Tiket ${ticketNo}" width="140" height="140" style="display:block; width:140px; height:140px; border-radius:6px;" />
+                                <p style="margin:0; font-size:10px; font-weight:700; letter-spacing:0.14em; color:#7e93a6; text-transform:uppercase;">LOKASI VENUE</p>
+                                <p style="margin:4px 0 0; font-size:14px; font-weight:700; color:#e2e8f0; line-height:1.45;">${where}</p>
                               </td>
                             </tr>
                           </table>
-                          <p style="margin:10px 0 0; font-size:10px; font-weight:800; color:#F2CB19; letter-spacing:0.04em; text-align:center; line-height:1.35;">
-                            SCAN UNTUK CHECK-IN / REGISTRASI
-                          </p>
                         </td>
                       </tr>
                     </table>
@@ -406,6 +403,7 @@ export function ticketMessage(input: TicketMail) {
     "",
     `BUKA TIKET DIGITAL : ${input.pageUrl}`,
     `UNDUH TIKET FILE   : ${input.downloadUrl}`,
+    "Pamflet acara      : terlampir pada email ini",
     "",
     "PANDUAN KEHADIRAN:",
     ...instructions.map((item, idx) => `${idx + 1}. ${item}`),
@@ -421,23 +419,35 @@ export function ticketMessage(input: TicketMail) {
   };
 }
 
-export async function sendTicketEmail(input: TicketMail) {
-  const { deliverMail } = await import("@/lib/smtp");
+export async function ticketMailPayload(input: TicketMail) {
+  const QRCode = (await import("qrcode")).default;
   const path = await import("node:path");
   const fs = await import("node:fs");
 
+  // The QR is generated locally as a small PNG (a few KB), so the message body stays
+  // far below Gmail's ~102 KB clipping threshold and never depends on an image service.
+  const qrBuffer = await QRCode.toBuffer(input.pageUrl, {
+    type: "png",
+    width: 440,
+    margin: 2,
+    errorCorrectionLevel: "M",
+    color: { dark: "#0b1118", light: "#ffffff" },
+  });
+
+  const attachments: MailAttachment[] = [
+    {
+      filename: "qr-tiket.png",
+      content: qrBuffer,
+      cid: "tiket-qr",
+      contentType: "image/png",
+    },
+  ];
+
+  // The pamphlet rides along as a regular attachment (never embedded in the HTML),
+  // so Gmail lists it as a file instead of rendering a broken inline image.
   const rawPamphlet = input.pamphletUrl || "/pamflet.jpeg";
-  const attachments: {
-    filename: string;
-    path: string;
-    cid: string;
-  }[] = [];
-
-  let effectivePamphletUrl = rawPamphlet;
-
-  // If pamphlet is local file or localhost URL, embed directly via RFC CID attachment
   let relativePath = "";
-  if (rawPamphlet.startsWith("http://") || rawPamphlet.startsWith("https://")) {
+  if (/^https?:\/\//i.test(rawPamphlet)) {
     try {
       const parsed = new URL(rawPamphlet);
       if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
@@ -451,29 +461,29 @@ export async function sendTicketEmail(input: TicketMail) {
   }
 
   if (relativePath) {
-    const cleanPath = relativePath.startsWith("/") ? relativePath.slice(1) : relativePath;
+    const cleanPath = relativePath.split("?")[0].replace(/^\//, "");
     const localFile = path.join(process.cwd(), "public", cleanPath);
     if (fs.existsSync(localFile)) {
       attachments.push({
         filename: path.basename(localFile),
         path: localFile,
-        cid: "pamflet-acara",
       });
-      effectivePamphletUrl = "cid:pamflet-acara";
     }
   }
 
-  const message = ticketMessage({
-    ...input,
-    pamphletUrl: effectivePamphletUrl,
-  });
+  return { ...ticketMessage(input), attachments };
+}
+
+export async function sendTicketEmail(input: TicketMail) {
+  const { deliverMail } = await import("@/lib/smtp");
+  const payload = await ticketMailPayload(input);
 
   const sent = await deliverMail({
     to: input.to.trim(),
-    subject: message.subject,
-    text: message.text,
-    html: message.html,
-    attachments: attachments.length > 0 ? attachments : undefined,
+    subject: payload.subject,
+    text: payload.text,
+    html: payload.html,
+    attachments: payload.attachments,
   });
   if (sent.ok || sent.error.startsWith("SMTP belum diatur")) return sent;
   return {

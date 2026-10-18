@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ticketMessage } from "./mail.ts";
+import { ticketMailPayload, ticketMessage } from "./mail.ts";
 
 const sample = {
   fullName: "Haydar <panitia>",
@@ -25,4 +25,24 @@ test("email tiket memuat data peserta dan menolak sisipan html", () => {
   assert.match(message.html, /Gets Hotel Semarang/);
   assert.match(message.html, /Buka tiket/);
   assert.match(message.text, /Nomor tiket: BSM-AB12CD34/);
+});
+
+test("payload email: QR lokal via CID, pamflet lampiran biasa, body kecil", async () => {
+  const payload = await ticketMailPayload(sample);
+
+  const qr = payload.attachments.find((item) => item.cid === "tiket-qr");
+  assert.ok(qr, "QR harus terpasang sebagai lampiran CID");
+  assert.equal(qr?.contentType, "image/png");
+
+  const poster = payload.attachments.find((item) => item.filename === "pamflet.jpeg");
+  assert.ok(poster, "pamflet harus terlampir sebagai lampiran biasa");
+  assert.equal(poster?.cid, undefined);
+
+  assert.match(payload.html, /cid:tiket-qr/);
+  assert.equal(payload.html.includes("cid:pamflet-acara"), false);
+  assert.equal(payload.html.includes("api.qrserver.com"), false);
+  assert.ok(
+    Buffer.byteLength(payload.html) < 60_000,
+    "body email harus jauh di bawah batas clip Gmail",
+  );
 });
