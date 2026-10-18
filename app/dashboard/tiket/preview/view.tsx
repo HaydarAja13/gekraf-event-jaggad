@@ -10,10 +10,12 @@ export function FullTicketPreview({
   html,
   eventTitle,
   pamphletUrl,
+  sender,
 }: {
   html: string;
   eventTitle: string;
   pamphletUrl: string;
+  sender: string;
 }) {
   const [viewMode, setViewMode] = useState<"desktop" | "mobile" | "full">("desktop");
   const [showTestModal, setShowTestModal] = useState(false);
@@ -191,9 +193,7 @@ export function FullTicketPreview({
               <div className="grid gap-1">
                 <div className="flex items-baseline gap-2">
                   <span className="w-16 font-semibold text-slate-800">Dari:</span>
-                  <span className="text-slate-700">
-                    GEKRAF Jawa Tengah &lt;tiket@gekraf-jateng.id&gt;
-                  </span>
+                  <span className="text-slate-700">{sender}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="w-16 font-semibold text-slate-800">Kepada:</span>

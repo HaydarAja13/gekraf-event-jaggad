@@ -497,10 +497,10 @@ export async function ticketMailPayload(input: TicketMail) {
   let relativePath = "";
   if (/^https?:\/\//i.test(rawPamphlet)) {
     try {
-      const parsed = new URL(rawPamphlet);
-      if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
-        relativePath = parsed.pathname;
-      }
+      // Whether the setting holds a full URL (production domain, localhost,
+      // etc.) or just a path, the poster file lives in this project's public/
+      // folder — only its path is needed here, never the hostname.
+      relativePath = new URL(rawPamphlet).pathname;
     } catch {
       // ignore
     }

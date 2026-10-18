@@ -71,6 +71,20 @@ test("payload email: QR tercetak di body, pamflet lampiran biasa, body aman dari
   );
 });
 
+test("payload email: pamphletUrl berupa URL domain penuh tetap melampirkan pamflet", async () => {
+  const payload = await ticketMailPayload({
+    ...sample,
+    pamphletUrl: "https://gekraf.jaggadacademy.id/pamflet.jpeg",
+  });
+
+  assert.equal(
+    payload.attachments.length,
+    1,
+    "pamflet harus tetap terlampir walau pengaturan memakai URL domain asli",
+  );
+  assert.equal(payload.attachments[0].filename, "pamflet.jpeg");
+});
+
 test("QR di email bisa dipindai ulang oleh pemindai independen", () => {
   const message = ticketMessage(sample);
   const table = message.html.match(

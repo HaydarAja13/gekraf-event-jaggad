@@ -4,6 +4,8 @@ import { getAdmin } from "@/lib/auth";
 import { getSite } from "@/lib/site";
 import { getTicketSettings } from "@/lib/ticket-settings";
 import { ticketMessage } from "@/lib/mail";
+import { requestOrigin } from "@/lib/origin";
+import { getSmtpSettings } from "@/lib/smtp";
 import { FullTicketPreview } from "./view";
 
 export default function TicketPreviewPage() {
@@ -27,7 +29,18 @@ async function TicketPreviewContent() {
   const admin = await getAdmin();
   if (!admin) redirect("/login");
 
-  const [site, settings] = await Promise.all([getSite(), getTicketSettings()]);
+  const [site, settings, origin, smtp] = await Promise.all([
+    getSite(),
+    getTicketSettings(),
+    requestOrigin(),
+    getSmtpSettings(),
+  ]);
+
+  // Alamat asal yang sebenarnya (di produksi: https://gekraf.jaggadacademy.id),
+  // bukan domain keras, supaya pratinjau sama dengan isi email sungguhan.
+  const sender = smtp
+    ? `${smtp.fromName} <${smtp.fromEmail}>`
+    : "Pengirim email (atur dulu di Pengaturan Email)";
 
   // Generate live sample email preview using current settings
   const sampleMessage = ticketMessage({
@@ -35,8 +48,8 @@ async function TicketPreviewContent() {
     plan: "VIP Exclusive Pass",
     amount: "Rp 1.499.000",
     ticketNo: "BSM-74829-VIP",
-    pageUrl: "https://gekraf-jateng.id/tiket/BSM-74829-VIP",
-    downloadUrl: "https://gekraf-jateng.id/tiket/BSM-74829-VIP/unduh",
+    pageUrl: `${origin}/tiket/BSM-74829-VIP`,
+    downloadUrl: `${origin}/tiket/BSM-74829-VIP/unduh`,
     when: `${site.hero.date}, ${site.hero.time}`,
     where: `${site.hero.venue}, ${site.hero.city}`,
     event: settings.eventTitle || "BUSINESS SKILL MASTERY",
@@ -56,6 +69,7 @@ async function TicketPreviewContent() {
       html={sampleMessage.html}
       eventTitle={settings.eventTitle || "BUSINESS SKILL MASTERY"}
       pamphletUrl={settings.pamphletUrl || "/pamflet.jpeg"}
+      sender={sender}
     />
   );
 }

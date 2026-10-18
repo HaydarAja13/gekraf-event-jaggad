@@ -7,6 +7,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdmin, login, logout } from "@/lib/auth";
 import { sendTicketEmail } from "@/lib/mail";
+import { requestOrigin } from "@/lib/origin";
 import { formatIdr, normalizeReferralCode, parseIdr, payableAmount, validReferralCode } from "@/lib/referral";
 import { makeTicketNo } from "@/lib/slots";
 import {
@@ -226,13 +227,6 @@ async function metaBrowser(path: string) {
     fbp: jar.get("_fbp")?.value ?? "",
     fbc: jar.get("_fbc")?.value ?? "",
   };
-}
-
-async function requestOrigin() {
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "127.0.0.1:3000";
-  return `${proto}://${host}`;
 }
 
 async function eventMail(input: { fullName: string; plan: string; amount: string; ticketNo: string; to: string }) {
