@@ -33,7 +33,7 @@ export function ticketHtml(input: {
     input.organizer || "DPD GEKRAF Jawa Tengah × Jaggad Academy",
   );
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ticketNo)}&margin=4&color=0b1118&bgcolor=d4f0fa`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ticketNo)}&margin=4&color=0b1118&bgcolor=0299c3`;
 
   return `<!doctype html>
 <html lang="id">
@@ -151,7 +151,7 @@ export function ticketHtml(input: {
       line-height: 1.35;
     }
     .qr-box {
-      background: #d4f0fa;
+      background: #0299c3;
       border-radius: 12px;
       padding: 8px;
       border: 2px solid #F2CB19;

@@ -36,7 +36,7 @@ async function Ticket({ params }: { params: Promise<{ code: string }> }) {
   ]);
   if (!order || !order.ticketNo) notFound();
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(order.ticketNo)}&margin=4&color=0b1118&bgcolor=d4f0fa`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(order.ticketNo)}&margin=4&color=0b1118&bgcolor=0299c3`;
 
   return (
     <div className="min-h-screen bg-[#060d13] text-white antialiased">
@@ -132,7 +132,7 @@ async function Ticket({ params }: { params: Promise<{ code: string }> }) {
 
                 {/* QR Code */}
                 <div className="flex flex-col items-center justify-center">
-                  <div className="rounded-xl border-2 border-[#F2CB19] bg-[#d4f0fa] p-2.5 shadow-lg">
+                  <div className="rounded-xl border-2 border-[#F2CB19] bg-[#0299c3] p-2.5 shadow-lg">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={qrUrl}

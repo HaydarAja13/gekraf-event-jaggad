@@ -43,13 +43,13 @@ test("payload email: QR tercetak di body, pamflet lampiran biasa, body aman dari
   assert.match(payload.html, /table-layout:fixed/);
   assert.match(
     payload.html,
-    /class="qr-plate" style="background:#d4f0fa; background-image:linear-gradient\(#d4f0fa,#d4f0fa\)/,
-    "kartu di belakang QR harus cyan muda dan dikunci lewat background-image",
+    /class="qr-plate" style="background:#0299c3; background-image:linear-gradient\(#0299c3,#0299c3\)/,
+    "kartu di belakang QR harus cyan brand #0299c3 dan dikunci lewat background-image",
   );
   assert.match(
     payload.html,
-    /background-image:linear-gradient\(#d4f0fa,#d4f0fa\)/,
-    "sel terang QR (cyan muda) harus dikunci agar Gmail dark mode tidak menggelapkannya",
+    /background-image:linear-gradient\(#0299c3,#0299c3\)/,
+    "sel terang QR (cyan brand yang terbukti selamat dari dark mode HP) harus dikunci",
   );
   assert.match(
     payload.html,
