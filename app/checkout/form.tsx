@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState, type DragEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { checkoutAction, previewReferralAction, type CheckoutState } from "@/lib/actions";
+import { toast } from "@/app/toast";
 import type { PayAccount } from "@/lib/sales";
 import type { Site } from "@/lib/types";
 import { AlertIcon, CheckIcon, CopyIcon, SpinnerIcon, UploadIcon, WhatsAppIcon } from "./icons";
@@ -274,6 +275,11 @@ export function CheckoutForm({
   // Errors come back as state, not a redirect: send focus to the first thing
   // that needs fixing (or to the banner when the problem is not a field).
   useEffect(() => {
+    if (!state?.message) return;
+    toast(state.backToPlans ? "warn" : "off", state.message);
+  }, [state]);
+
+  useEffect(() => {
     if (!state) return;
     const first = formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']");
     if (first) first.focus();
@@ -428,6 +434,7 @@ export function CheckoutForm({
                 if (!result.ok) {
                   setApplied(null);
                   setReferralNote(result.error);
+                  toast("off", result.error);
                   return;
                 }
                 if (result.empty) {
@@ -436,6 +443,7 @@ export function CheckoutForm({
                 }
                 setReferral(result.code);
                 setApplied({ name: result.name, payable: result.payable, discountLabel: result.discountLabel });
+                toast("ok", `Kode ${result.name} dipakai. Potongan ${result.discountLabel}.`);
               }}
               className="shrink-0 rounded-xl border border-[#dfe4e8] bg-white px-4 text-[14px] font-extrabold text-gekraf-ink transition hover:border-gekraf-cyan hover:text-gekraf-cyan-deep focus-visible:ring-2 focus-visible:ring-gekraf-cyan/30 focus-visible:outline-none disabled:opacity-60"
             >

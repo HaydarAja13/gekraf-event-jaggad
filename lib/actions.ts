@@ -185,7 +185,8 @@ export async function checkoutAction(
       fieldErrors: {},
     };
   }
-  redirect("/checkout/terkirim");
+  const tiket = result.ticketNo ? `?tiket=${encodeURIComponent(result.ticketNo)}` : "";
+  redirect(`/checkout/terkirim${tiket}`);
 }
 
 async function requestOrigin() {

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getSite } from "@/lib/site";
@@ -13,12 +14,12 @@ export const metadata: Metadata = {
 
 const steps = [
   {
-    title: "Pantau email Anda",
-    body: "Nomor tiket dan tautan tiket dikirim ke email yang Anda daftarkan begitu pembayaran dikonfirmasi panitia.",
+    title: "Simpan nomor tiket",
+    body: "Nomor unik sudah terbit saat pendaftaran. Simpan nomor ini. Tautan tiket dikirim ke email begitu pembayaran dikonfirmasi.",
   },
   {
-    title: "Simpan tiketnya",
-    body: "Tiket berisi nomor unik dan bisa diunduh. Tunjukkan saat check-in di lokasi acara.",
+    title: "Tunjukkan saat check-in",
+    body: "Setelah pembayaran dikonfirmasi, tiket bisa diunduh. Tunjukkan nomor tiket ke panitia di lokasi acara.",
   },
   {
     title: "Hubungi panitia bila perlu",
@@ -26,8 +27,25 @@ const steps = [
   },
 ];
 
-export default async function SentPage() {
-  const site = await getSite();
+export default function SentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tiket?: string }>;
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gekraf-surface" />}>
+      <SentContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function SentContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ tiket?: string }>;
+}) {
+  const [{ tiket }, site] = await Promise.all([searchParams, getSite()]);
+  const code = tiket && /^BSM-[0-9A-Z]+$/.test(tiket) ? tiket : "";
 
   return (
     <>
@@ -49,9 +67,19 @@ export default async function SentPage() {
                     Pendaftaran Anda sudah masuk.
                   </h1>
                   <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-gekraf-muted">
-                    Bukti pembayaran sudah kami terima. Setelah panitia mengonfirmasi pembayaran, nomor tiket dan
-                    tautan tiket dikirim ke email Anda.
+                    Bukti pembayaran sudah kami terima. Nomor tiket Anda sudah terbit. Tautan tiket dikirim ke email
+                    setelah panitia mengonfirmasi pembayaran.
                   </p>
+                  {code ? (
+                    <p className="mt-5">
+                      <span className="block text-[12px] font-extrabold tracking-[0.14em] text-gekraf-muted">
+                        NOMOR TIKET
+                      </span>
+                      <span className="mt-1 block text-[2rem] leading-none font-extrabold tracking-[0.04em] text-gekraf-ink">
+                        {code}
+                      </span>
+                    </p>
+                  ) : null}
                 </div>
                 <span
                   aria-hidden

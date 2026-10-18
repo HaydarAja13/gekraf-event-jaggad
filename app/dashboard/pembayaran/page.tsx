@@ -4,6 +4,7 @@ import { getAdmin } from "@/lib/auth";
 import { listSales } from "@/lib/sales";
 import { CopyButton, InlineConfirm } from "../menu";
 import { greeting, todayLine } from "../greeting";
+import { Flash } from "@/app/toast";
 import {
   Btn,
   BtnLink,
@@ -13,7 +14,6 @@ import {
   Field,
   Icon,
   Meta,
-  Notice,
   PageHead,
   Pill,
   inputClass,
@@ -71,16 +71,18 @@ async function Pembayaran({
         }
       />
 
-      {query.saved === "1" ? <Notice tone="ok">Rekening tersimpan.</Notice> : null}
-      {query.error === "1" ? (
-        <Notice tone="off">Nama bank, nama rekening, dan nomor rekening wajib diisi.</Notice>
-      ) : null}
-      {query.error === "used" ? (
-        <Notice tone="warn">
-          Rekening ini sudah dipakai pada transaksi sehingga tidak bisa dihapus. Edit datanya kalau memang
-          ada yang salah.
-        </Notice>
-      ) : null}
+      <Flash
+        items={[
+          query.saved === "1" ? { tone: "ok" as const, text: "Rekening tersimpan." } : null,
+          empty ? { tone: "off" as const, text: "Nama bank, nama rekening, dan nomor rekening wajib diisi." } : null,
+          query.error === "used"
+            ? {
+                tone: "warn" as const,
+                text: "Rekening ini sudah dipakai pada transaksi sehingga tidak bisa dihapus. Edit datanya kalau memang ada yang salah.",
+              }
+            : null,
+        ].filter((item) => item !== null)}
+      />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
         <Card>

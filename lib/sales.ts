@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { connection } from "next/server";
 import { normalizeReferralCode } from "@/lib/referral";
-import { makeTicketNo, type OrderStatus } from "@/lib/slots";
+import { type OrderStatus } from "@/lib/slots";
 
 export type PayAccount = {
   id: string;
@@ -169,7 +169,8 @@ export async function createOrder(
     referralCode: string;
   },
 ) {
-  const { error } = await db().rpc("place_order", {
+  const client = db();
+  const { error } = await client.rpc("place_order", {
     full_name: input.fullName,
     email: input.email,
     whatsapp: input.whatsapp,
@@ -186,7 +187,14 @@ export async function createOrder(
     })),
     referral_code: input.referralCode,
   });
-  if (!error) return { ok: true as const };
+  if (!error) {
+    const saved = await client
+      .from("orders")
+      .select("ticket_no")
+      .eq("proof_path", input.proofFile)
+      .maybeSingle();
+    return { ok: true as const, ticketNo: String(saved.data?.ticket_no ?? "") };
+  }
   if (error.message.includes("referral")) return { ok: false as const, error: "referral" };
   if (error.message.includes("account")) return { ok: false as const, error: "account" };
   if (error.message.includes("locked")) return { ok: false as const, error: "locked" };
@@ -261,12 +269,13 @@ export async function approveOrder(
   if (!row || row.status !== "pending") {
     return { ok: false as const, error: "Transaksi ini sudah diproses." };
   }
-  const ticketNo = makeTicketNo();
+  const ticketNo = row.ticket_no;
+  if (!ticketNo) return { ok: false as const, error: "Nomor tiket belum terbit." };
   const mailed = await send(mapOrder(row), ticketNo);
   if (!mailed.ok) return mailed;
   const saved = await client
     .from("orders")
-    .update({ status: "approved", ticket_no: ticketNo })
+    .update({ status: "approved" })
     .eq("id", row.id)
     .eq("status", "pending");
   if (saved.error) return { ok: false as const, error: saved.error.message };

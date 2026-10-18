@@ -21,8 +21,8 @@ import {
   Td,
 } from "./ui";
 import { MenuButton, ProofPreview } from "./menu";
-import { referralDetail } from "@/lib/referral";
-import { greeting, shortDate, timeOfDay, todayLine } from "./greeting";
+import { formatIdr, referralDetail } from "@/lib/referral";
+import { greeting, orderStamp, shortDate, timeOfDay, todayLine } from "./greeting";
 
 export default function DashboardHome({
   searchParams,
@@ -129,31 +129,41 @@ async function Home({
           }
         />
         <TableShell
-          minWidth="860px"
+          minWidth="1120px"
           cols={[
-            { key: "peserta", label: "Peserta", width: "34%" },
-            { key: "paket", label: "Paket", width: "24%" },
-            { key: "bukti", label: "Bukti", width: "104px" },
-            { key: "status", label: "Status", width: "180px" },
+            { key: "tiket", label: "No. Tiket", width: "120px" },
+            { key: "peserta", label: "Peserta", width: "22%" },
+            { key: "paket", label: "Paket", width: "14%" },
+            { key: "referral", label: "Referral", width: "16%" },
+            { key: "bukti", label: "Bukti pembayaran", width: "150px" },
+            { key: "tanggal", label: "Tgl. pesan", width: "160px" },
+            { key: "status", label: "Status", width: "130px" },
           ]}
         >
           {orders.slice(0, 6).map((order) => (
             <tr key={order.id}>
               <Td>
-                <span className="flex items-center gap-2.5">
-                  <Avatar name={order.fullName} size={30} />
-                  <span className="min-w-0">
-                    <span className="block truncate font-semibold text-dash-ink">{order.fullName}</span>
-                    <Meta>{order.email}</Meta>
-                  </span>
+                <span className="font-mono text-[13px] font-semibold tracking-wide text-dash-ink">
+                  {order.ticketNo ?? "—"}
                 </span>
               </Td>
               <Td>
-                <span className="block font-medium">{order.plan}</span>
-                <Meta>
-                  {order.amount}
-                  {order.ticketNo ? ` · ${order.ticketNo}` : ""} · {referralDetail(order)}
-                </Meta>
+                <span className="block truncate font-semibold text-dash-ink">{order.fullName}</span>
+                <Meta>{order.email}</Meta>
+              </Td>
+              <Td>
+                <span className="block font-semibold text-dash-ink">{order.plan}</span>
+                <Meta>{order.amount}</Meta>
+              </Td>
+              <Td>
+                {order.referralCode ? (
+                  <>
+                    <span className="block font-semibold text-dash-ink">{order.referralCode}</span>
+                    <Meta>Potongan {formatIdr(order.discountAmount)}</Meta>
+                  </>
+                ) : (
+                  <span className="text-dash-muted">—</span>
+                )}
               </Td>
               <Td>
                 <ProofPreview
@@ -162,16 +172,16 @@ async function Home({
                 />
               </Td>
               <Td>
+                <span className="tnum whitespace-nowrap">{orderStamp(order.createdAt)}</span>
+              </Td>
+              <Td>
                 <OrderStatus status={order.status} short />
-                <Meta>
-                  {shortDate(order.createdAt)} {timeOfDay(order.createdAt)}
-                </Meta>
               </Td>
             </tr>
           ))}
           {orders.length === 0 ? (
             <tr>
-              <td colSpan={4}>
+              <td colSpan={7}>
                 <EmptyState
                   icon="receipt"
                   title="Belum ada transaksi masuk"

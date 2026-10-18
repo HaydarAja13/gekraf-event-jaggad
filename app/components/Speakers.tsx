@@ -25,58 +25,57 @@ function CheckIcon() {
 export default function Speakers({ content }: { content: Site["speakers"] }) {
   return (
     <section id="pemateri" className="bg-gekraf-surface">
-      <div className="mx-auto w-[95%] px-6 py-20 sm:px-10 lg:px-12 lg:py-24">
+      <div className="mx-auto w-[95%] px-4 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-24">
         <div className="mx-auto text-center">
-          <span className="inline-flex rounded-full bg-gekraf-gold px-4 py-1.5 text-[16px] font-extrabold tracking-[0.14em] text-gekraf-ink uppercase">
+          <span className="inline-flex rounded-full bg-gekraf-gold px-3.5 py-1 text-[14px] sm:text-[15px] lg:text-[16px] font-extrabold tracking-[0.14em] text-gekraf-ink uppercase">
             {content.badge}
           </span>
-          <h2 className="mt-5 text-[clamp(2.025rem,3.6vw,2.675rem)] leading-[1.15] font-extrabold text-gekraf-ink lg:whitespace-nowrap">
+          <h2 className="mt-4 sm:mt-5 font-serif text-[clamp(1.95rem,3.6vw,2.675rem)] leading-[1.15] font-extrabold text-gekraf-ink text-balance">
             {content.title}
           </h2>
-          <p className="mx-auto mt-3 max-w-[36rem] text-[18px] leading-[1.65] text-[#5F7C97]">
+          <p className="mx-auto mt-3 max-w-[36rem] text-[15px] sm:text-[17px] lg:text-[18px] leading-[1.65] text-[#5F7C97]">
             {content.body}
           </p>
         </div>
 
-        {/* pt = space for heads popping above card — size stays full */}
-        <div className="mt-8 grid gap-5 pt-16 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-7">
+        {/* pt = space for speaker heads popping above card */}
+        <div className="mt-6 sm:mt-8 grid gap-6 pt-14 sm:pt-16 md:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-7">
           {content.people.map((s, i) => (
             <article
               key={`${s.name}-${i}`}
-              className="relative overflow-visible rounded-[18px] bg-gekraf-cyan text-white"
+              className="relative overflow-visible rounded-[20px] bg-gekraf-cyan text-white shadow-[0_12px_32px_rgba(2,153,195,0.18)] transition-transform hover:-translate-y-1 md:last:col-span-2 md:last:max-w-md md:last:mx-auto lg:last:col-span-1 lg:last:max-w-none w-full"
             >
-              {/* same aspect as before, only shifted up so head exits the card */}
-              <div className="relative -mt-16 aspect-[5/4] overflow-visible sm:-mt-20">
+              <div className="relative -mt-14 sm:-mt-16 aspect-[5/4] overflow-visible">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,rgba(248,212,80,0.32)_0%,transparent_58%)]" />
                 <CmsImage
                   src={s.src}
                   alt={s.name}
                   fill
                   className="object-cover object-top"
-                  sizes="(max-width: 1024px) 100vw, 420px"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 380px"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-gekraf-cyan to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-16 sm:h-20 bg-gradient-to-t from-gekraf-cyan to-transparent" />
               </div>
 
-              <div className="relative z-[1] px-8 pt-2 pb-9 sm:px-10">
-                <h3 className="text-[20px] font-extrabold tracking-[0.04em] uppercase">
+              <div className="relative z-[1] px-6 pt-1 pb-7 sm:px-8 sm:pb-8">
+                <h3 className="text-[18px] sm:text-[20px] font-extrabold tracking-[0.03em] uppercase">
                   {s.name}
                 </h3>
-                <p className="mt-0.5 text-[18px] text-white/70">{s.title}</p>
+                <p className="mt-0.5 text-[15px] sm:text-[17px] text-white/80">{s.title}</p>
 
-                <span className="mt-3.5 inline-flex rounded-full bg-gekraf-gold px-3.5 py-1 text-[16px] font-extrabold tracking-[0.14em] text-gekraf-ink uppercase">
+                <span className="mt-3 inline-flex rounded-full bg-gekraf-gold px-3 py-0.5 text-[13px] sm:text-[14px] font-extrabold tracking-[0.12em] text-gekraf-ink uppercase">
                   {s.badge}
                 </span>
 
-                <p className="mt-3.5 text-[19px] leading-snug font-bold text-white">
+                <p className="mt-3 text-[16px] sm:text-[18px] leading-snug font-bold text-white">
                   {s.headline}
                 </p>
 
-                <ul className="mt-4 space-y-2.5">
+                <ul className="mt-3.5 space-y-2">
                   {s.points.map((p) => (
                     <li
                       key={p}
-                      className="flex items-start gap-2.5 text-[18px] leading-snug text-white/90"
+                      className="flex items-start gap-2.5 text-[15px] sm:text-[17px] leading-snug text-white/90"
                     >
                       <CheckIcon />
                       <span>{p}</span>

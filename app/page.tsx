@@ -53,24 +53,24 @@ async function LivePricing({ content }: { content: Site["pricing"] }) {
 function PricingFallback({ content }: { content: Site["pricing"] }) {
   return (
     <section id="harga" className="bg-gekraf-cyan text-white" aria-busy="true">
-      <div className="mx-auto grid w-[95%] gap-12 px-6 py-20 sm:px-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.45fr)] lg:items-center lg:gap-10 lg:px-12 lg:py-24">
+      <div className="mx-auto grid w-[95%] gap-8 px-4 sm:px-8 lg:px-12 py-16 sm:py-20 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.45fr)] lg:items-center lg:gap-10 lg:py-24">
         <div>
-          <span className="inline-flex rounded-full border border-gekraf-gold bg-gekraf-gold/20 px-4 py-1.5 text-[16px] font-extrabold tracking-[0.16em] text-white uppercase">
+          <span className="inline-flex rounded-full border border-gekraf-gold bg-gekraf-gold/20 px-3.5 py-1 text-[14px] sm:text-[15px] lg:text-[16px] font-extrabold tracking-[0.14em] text-white uppercase">
             {content.badge}
           </span>
-          <h2 className="mt-5 text-[clamp(2.025rem,3.6vw,2.675rem)] leading-[1.18] font-extrabold text-white">
+          <h2 className="mt-4 sm:mt-5 font-serif text-[clamp(1.95rem,3.6vw,2.675rem)] leading-[1.18] font-extrabold text-white text-balance">
             {content.title}
           </h2>
-          <p className="mt-4 max-w-[22rem] text-[18px] leading-[1.7] text-white/80">{content.body}</p>
+          <p className="mt-3.5 max-w-[24rem] text-[15px] sm:text-[17px] lg:text-[18px] leading-[1.7] text-white/85">{content.body}</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {content.plans.map((plan) => (
             <article
               key={plan.name}
-              className="flex min-h-[320px] flex-col rounded-[28px] border border-white/25 bg-white/10 p-6"
+              className="flex min-h-[300px] flex-col rounded-2xl border-2 border-gekraf-gold/80 bg-white/5 p-5 sm:last:col-span-2 sm:last:max-w-md sm:last:mx-auto lg:last:col-span-1 lg:last:max-w-none w-full"
             >
-              <p className="text-center text-[20px] font-extrabold tracking-[0.12em]">{plan.name}</p>
-              <div className="mt-8 h-10 rounded-full bg-white/15" />
+              <p className="text-center text-[16px] font-extrabold tracking-[0.12em]">{plan.name}</p>
+              <div className="mt-6 h-10 rounded-full bg-white/15" />
               <div className="mt-auto h-11 rounded-full bg-white/10" />
             </article>
           ))}

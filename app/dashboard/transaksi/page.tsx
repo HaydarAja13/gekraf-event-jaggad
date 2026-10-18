@@ -4,10 +4,10 @@ import { approveOrderAction, rejectOrderAction } from "@/lib/actions";
 import { getAdmin } from "@/lib/auth";
 import { listSales } from "@/lib/sales";
 import { InlineConfirm, ProofPreview, SearchBox } from "../menu";
-import { referralDetail } from "@/lib/referral";
-import { greeting, shortDate, timeOfDay, todayLine } from "../greeting";
+import { formatIdr } from "@/lib/referral";
+import { greeting, orderStamp, todayLine } from "../greeting";
+import { Flash } from "@/app/toast";
 import {
-  Avatar,
   Btn,
   BtnLink,
   Card,
@@ -20,6 +20,7 @@ import {
   Pill,
   TableShell,
   Td,
+  btnClass,
 } from "../ui";
 
 const FILTERS = [
@@ -85,7 +86,7 @@ async function Transaksi({
       <PageHead
         date={todayLine()}
         title={`${greeting()}, ${admin?.username ?? "admin"}`}
-        sub="Setujui bukti transfer yang masuk. ACC akan menerbitkan nomor tiket dan mengirim email ke peserta."
+        sub="Kelola pendaftaran dan bukti transfer. ACC transaksi untuk mengaktifkan tiket dan mengirimkannya via email ke peserta."
         actions={
           <>
             <BtnLink href="/dashboard/pembayaran" icon="card">
@@ -98,8 +99,12 @@ async function Transaksi({
         }
       />
 
-      {query.saved === "1" ? <Notice tone="ok">Tiket terkirim ke email peserta.</Notice> : null}
-      {query.error ? <Notice tone="off">{query.error}</Notice> : null}
+      <Flash
+        items={[
+          query.saved === "1" ? { tone: "ok" as const, text: "Tiket terkirim ke email peserta." } : null,
+          query.error ? { tone: "off" as const, text: query.error } : null,
+        ].filter((item) => item !== null)}
+      />
       {counts.pending > 0 && status !== "pending" ? (
         <Notice tone="wait">
           {counts.pending} pembayaran menunggu ACC.{" "}
@@ -123,7 +128,7 @@ async function Transaksi({
 
         <div className="flex flex-wrap items-center gap-2 px-[var(--dash-gutter)] pb-3.5">
           <div className="w-full min-w-56 flex-1 sm:max-w-[340px]">
-            <SearchBox defaultValue={q} placeholder="Cari nama, email, atau nomor tiket" />
+            <SearchBox action="/dashboard/transaksi" defaultValue={q} placeholder="Cari nama, email, atau nomor tiket" />
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             {FILTERS.map((filter) => {
@@ -159,55 +164,74 @@ async function Transaksi({
         </div>
 
         <TableShell
-          minWidth="1120px"
+          dense
+          minWidth="1106px"
           cols={[
-            { key: "peserta", label: "Peserta", width: "22%" },
-            { key: "kontak", label: "Kontak", width: "16%" },
-            { key: "paket", label: "Paket", width: "16%" },
-            { key: "referral", label: "Referral", width: "22%" },
-            { key: "bukti", label: "Bukti", width: "100px" },
-            { key: "status", label: "Status", width: "150px" },
-            { key: "aksi", label: "Aksi", width: "182px", align: "right" },
+            { key: "tiket", label: "No. Tiket", width: "112px" },
+            { key: "peserta", label: "Peserta", width: "130px" },
+            { key: "kontak", label: "Kontak", width: "118px" },
+            { key: "paket", label: "Paket", width: "110px" },
+            { key: "referral", label: "Referral", width: "100px" },
+            { key: "bukti", label: "Bukti pembayaran", width: "100px" },
+            { key: "tanggal", label: "Tgl. pesan", width: "156px" },
+            { key: "status", label: "Status", width: "112px" },
+            { key: "aksi", label: "Aksi", width: "168px", align: "right" },
           ]}
         >
           {orders.map((order) => (
             <tr key={order.id}>
-              <Td>
-                <span className="flex items-center gap-2.5">
-                  <Avatar name={order.fullName} size={30} />
-                  <span className="min-w-0">
-                    <span className="block truncate font-semibold text-dash-ink">{order.fullName}</span>
-                    <Meta>{order.email}</Meta>
-                  </span>
+              <Td dense>
+                <span className="block whitespace-nowrap font-mono text-[13px] font-semibold tracking-wide text-dash-ink">
+                  {order.ticketNo ?? "—"}
                 </span>
               </Td>
-              <Td>
-                <span className="block truncate">{order.whatsapp}</span>
-                <Meta>{order.institution}</Meta>
+              <Td dense>
+                <span className="block truncate font-semibold text-dash-ink">{order.fullName}</span>
+                <a
+                  href={`mailto:${order.email}`}
+                  className="block truncate text-[12.5px] leading-5 text-dash-muted hover:text-dash-fill-hover hover:underline"
+                >
+                  {order.email}
+                </a>
               </Td>
-              <Td>
-                <span className="block font-medium">{order.plan}</span>
-                <Meta>
-                  {order.amount} · {shortDate(order.createdAt)} {timeOfDay(order.createdAt)}
-                </Meta>
+              <Td dense>
+                <a
+                  href={`https://wa.me/${order.whatsapp.replace(/\D/g, "").replace(/^0/, "62")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block truncate font-medium text-dash-ink hover:text-dash-fill-hover hover:underline"
+                >
+                  {order.whatsapp}
+                </a>
+                <Meta>{order.institution || "—"}</Meta>
               </Td>
-              <Td>
-                <span className={`block text-[13px] ${order.referralCode ? "font-semibold text-dash-ink" : "text-dash-muted"}`}>
-                  {order.referralCode ? order.referralCode : "Tidak memakai"}
-                </span>
-                <Meta>{order.referralCode ? referralDetail(order) : "Tanpa potongan"}</Meta>
+              <Td dense>
+                <span className="block truncate font-semibold text-dash-ink">{order.plan}</span>
+                <Meta>{order.amount}</Meta>
               </Td>
-              <Td>
+              <Td dense>
+                {order.referralCode ? (
+                  <>
+                    <span className="block truncate font-semibold text-dash-ink">{order.referralCode}</span>
+                    <Meta>Potongan {formatIdr(order.discountAmount)}</Meta>
+                  </>
+                ) : (
+                  <span className="text-dash-muted">—</span>
+                )}
+              </Td>
+              <Td dense>
                 <ProofPreview
                   src={`/dashboard/bukti/${order.id}`}
                   name={`${order.fullName} · ${order.plan}`}
                 />
               </Td>
-              <Td>
-                <OrderStatus status={order.status} />
-                {order.ticketNo ? <Meta>{order.ticketNo}</Meta> : null}
+              <Td dense>
+                <span className="tnum block whitespace-nowrap text-[13px]">{orderStamp(order.createdAt)}</span>
               </Td>
-              <Td align="right">
+              <Td dense>
+                <OrderStatus status={order.status} short />
+              </Td>
+              <Td dense align="right">
                 {order.status === "pending" ? (
                   <span className="flex items-center justify-end gap-2">
                     <form action={approveOrderAction}>
@@ -232,17 +256,29 @@ async function Transaksi({
                       }
                     />
                   </span>
-                ) : (
-                  <span className="text-[12.5px] text-dash-muted">
-                    {order.status === "approved" ? "Sudah diterbitkan" : "Tidak diterbitkan"}
+                ) : order.status === "approved" ? (
+                  <span className="flex items-center justify-end gap-2">
+                    <span className="text-[12px] font-medium text-dash-ok-fg">Diterbitkan</span>
+                    {order.ticketNo ? (
+                      <a
+                        href={`/tiket/${encodeURIComponent(order.ticketNo)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={btnClass("outline", "sm")}
+                      >
+                        Lihat
+                      </a>
+                    ) : null}
                   </span>
+                ) : (
+                  <span className="text-[12.5px] text-dash-muted">Ditolak</span>
                 )}
               </Td>
             </tr>
           ))}
           {orders.length === 0 ? (
             <tr>
-              <td colSpan={7}>
+              <td colSpan={9}>
                 {counts.semua === 0 ? (
                   <EmptyState
                     icon="receipt"

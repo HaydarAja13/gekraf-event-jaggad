@@ -3,16 +3,12 @@ import Link from "next/link";
 import { getAdmin } from "@/lib/auth";
 import { listCustomers } from "@/lib/sales";
 import { SearchBox } from "../menu";
-import { referralDetail } from "@/lib/referral";
-import { greeting, longDate, todayLine } from "../greeting";
+import { greeting, orderStamp, todayLine } from "../greeting";
 import {
-  Avatar,
   BtnLink,
   Card,
   CardHead,
   EmptyState,
-  Meta,
-  OrderStatus,
   PageHead,
   Pill,
   TableShell,
@@ -65,7 +61,7 @@ async function CustomerList({
       <PageHead
         date={todayLine()}
         title={`${greeting()}, ${admin?.username ?? "admin"}`}
-        sub="Data peserta diambil dari formulir checkout dan dihubungkan ke orderannya."
+        sub="Data peserta diambil dari formulir checkout dan dihubungkan ke riwayat transaksi dan tiketnya."
         actions={
           <>
             <BtnLink href="/dashboard/transaksi" icon="receipt">
@@ -92,79 +88,73 @@ async function CustomerList({
 
         <div className="px-[var(--dash-gutter)] pb-3.5">
           <div className="w-full sm:max-w-[340px] xl:max-w-[420px]">
-            <SearchBox defaultValue={q} placeholder="Cari nama, email, atau instansi" />
+            <SearchBox action="/dashboard/customer" defaultValue={q} placeholder="Cari nama, email, atau instansi" />
           </div>
         </div>
 
         <TableShell
-          minWidth="960px"
+          dense
+          minWidth="1106px"
           cols={[
-            { key: "customer", label: "Customer", width: "28%" },
-            { key: "kontak", label: "Kontak", width: "24%" },
-            { key: "instansi", label: "Instansi", width: "22%" },
-            { key: "order", label: "Order", width: "26%" },
+            { key: "nama", label: "Nama", width: "150px" },
+            { key: "email", label: "Email", width: "200px" },
+            { key: "whatsapp", label: "WhatsApp", width: "140px" },
+            { key: "instansi", label: "Instansi", width: "140px" },
+            { key: "jabatan", label: "Jabatan", width: "140px" },
+            { key: "alamat", label: "Alamat", width: "180px" },
+            { key: "daftar", label: "Tgl. daftar", width: "156px" },
           ]}
         >
           {rows.map((customer) => (
             <tr key={customer.id}>
-              <Td>
-                <span className="flex items-start gap-2.5">
-                  <Avatar name={customer.fullName} size={32} />
-                  <span className="min-w-0">
-                    <span className="block truncate font-semibold text-dash-ink">
-                      {customer.fullName}
-                    </span>
-                    <Meta>Terdaftar {longDate(customer.createdAt)}</Meta>
-                    {customer.address ? <Meta>{customer.address}</Meta> : null}
-                  </span>
+              <Td dense>
+                <span className="block truncate font-semibold text-dash-ink" title={customer.fullName}>
+                  {customer.fullName}
                 </span>
               </Td>
-              <Td>
+              <Td dense>
                 <a
                   href={`mailto:${customer.email}`}
-                  className="block truncate font-medium text-dash-ink hover:text-dash-fill-hover hover:underline"
+                  title={customer.email}
+                  className="block truncate text-dash-ink hover:text-dash-fill-hover hover:underline"
                 >
                   {customer.email}
                 </a>
+              </Td>
+              <Td dense>
                 <a
                   href={`https://wa.me/${customer.whatsapp.replace(/\D/g, "").replace(/^0/, "62")}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="block text-dash-muted hover:text-dash-fill-hover hover:underline"
+                  title={customer.whatsapp}
+                  className="block truncate whitespace-nowrap text-dash-ink hover:text-dash-fill-hover hover:underline"
                 >
                   {customer.whatsapp}
                 </a>
               </Td>
-              <Td>
-                <span className="block font-medium">{customer.institution || "—"}</span>
-                <Meta>{customer.jobTitle || "—"}</Meta>
+              <Td dense>
+                <span className="block truncate" title={customer.institution || undefined}>
+                  {customer.institution || "—"}
+                </span>
               </Td>
-              <Td>
-                {customer.orders.length === 0 ? (
-                  <span className="text-dash-muted">Belum ada order</span>
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {customer.orders.map((order) => (
-                      <li key={order.id} className="flex flex-wrap items-center gap-2">
-                        <span className="min-w-0">
-                          <span className="block font-semibold text-dash-ink">{order.plan}</span>
-                          <Meta>
-                            {order.amount}
-                            {order.ticketNo ? ` · ${order.ticketNo}` : ""} · {referralDetail(order)} ·{" "}
-                            {longDate(order.createdAt)}
-                          </Meta>
-                        </span>
-                        <OrderStatus status={order.status} short />
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <Td dense>
+                <span className="block truncate" title={customer.jobTitle || undefined}>
+                  {customer.jobTitle || "—"}
+                </span>
+              </Td>
+              <Td dense>
+                <span className="block truncate" title={customer.address || undefined}>
+                  {customer.address || "—"}
+                </span>
+              </Td>
+              <Td dense>
+                <span className="tnum block whitespace-nowrap text-[13px]">{orderStamp(customer.createdAt)}</span>
               </Td>
             </tr>
           ))}
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={4}>
+              <td colSpan={7}>
                 {customers.length === 0 ? (
                   <EmptyState
                     icon="users"

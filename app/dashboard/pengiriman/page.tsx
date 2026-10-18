@@ -6,7 +6,8 @@ import { listSales } from "@/lib/sales";
 import { getSmtpSettings } from "@/lib/smtp";
 import { getSite } from "@/lib/site";
 import { greeting, todayLine } from "../greeting";
-import { Btn, Card, Field, Icon, Notice, PageHead, Pill, inputClass } from "../ui";
+import { Flash } from "@/app/toast";
+import { Btn, Card, Field, Icon, PageHead, Pill, inputClass } from "../ui";
 
 const SUMOPOD = { host: "smtp.sumopod.com", port: 465, secure: true };
 
@@ -54,13 +55,19 @@ async function Pengiriman({
         sub="Tiket terkirim otomatis ke email peserta begitu pembayaran di-ACC. Isi SMTP Sumopod di sini."
       />
 
-      {query.saved === "1" ? <Notice tone="ok">Pengaturan SMTP tersimpan dan koneksi berhasil.</Notice> : null}
-      {query.sent === "1" ? <Notice tone="ok">Tiket terkirim ke email yang diminta.</Notice> : null}
-      {query.probe === "1" ? (
-        <Notice tone="ok">Email tiket terkirim. Isi dan tampilannya sama dengan email peserta.</Notice>
-      ) : null}
-      {query.warn ? <Notice tone="warn">{query.warn}</Notice> : null}
-      {query.error ? <Notice tone="off">{query.error}</Notice> : null}
+      <Flash
+        items={[
+          query.saved === "1"
+            ? { tone: "ok" as const, text: "Pengaturan SMTP tersimpan dan koneksi berhasil." }
+            : null,
+          query.sent === "1" ? { tone: "ok" as const, text: "Tiket terkirim ke email yang diminta." } : null,
+          query.probe === "1"
+            ? { tone: "ok" as const, text: "Email tiket terkirim. Isi dan tampilannya sama dengan email peserta." }
+            : null,
+          query.warn ? { tone: "warn" as const, text: query.warn } : null,
+          query.error ? { tone: "off" as const, text: query.error } : null,
+        ].filter((item) => item !== null)}
+      />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <Card padded>

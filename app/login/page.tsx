@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { loginAction } from "@/lib/actions";
 import { getAdmin } from "@/lib/auth";
+import { Flash } from "@/app/toast";
+import { PendingButton } from "@/app/submit";
 
 export const metadata = { title: "Masuk" };
 
@@ -51,11 +53,10 @@ function LoginFrame({ error }: { error: boolean }) {
           <p className="mt-2 text-[16px] leading-relaxed text-gekraf-muted">
             Gunakan akun admin yang sudah dibuat.
           </p>
-
           {error && (
             <p
               role="alert"
-              className="mt-5 rounded-xl border border-[#9a3412] bg-[#fff1e8] px-3 py-2.5 text-[15px] leading-snug text-[#9a3412]"
+              className="mt-5 rounded-xl border border-[#9a3412] bg-[#fff1e8] px-3.5 py-2.5 text-[14.5px] leading-snug font-semibold text-[#9a3412]"
             >
               Username atau password salah.
             </p>
@@ -84,12 +85,9 @@ function LoginFrame({ error }: { error: boolean }) {
             className="mt-1.5 w-full rounded-xl border border-black/15 bg-white px-3 py-3 text-[16px] text-gekraf-ink outline-none focus-visible:border-gekraf-cyan focus-visible:ring-2 focus-visible:ring-gekraf-cyan/30"
           />
 
-          <button
-            type="submit"
-            className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-gekraf-gold px-5 py-3 text-[16px] font-extrabold text-gekraf-ink transition hover:bg-gekraf-gold-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gekraf-ink"
-          >
+          <PendingButton className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gekraf-gold px-5 py-3 text-[16px] font-extrabold text-gekraf-ink transition hover:bg-gekraf-gold-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gekraf-ink disabled:cursor-wait disabled:opacity-80">
             Masuk
-          </button>
+          </PendingButton>
         </form>
       </section>
     </div>

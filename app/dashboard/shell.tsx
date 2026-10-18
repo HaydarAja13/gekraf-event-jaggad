@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { logoutAction } from "@/lib/actions";
+import { PendingButton } from "@/app/submit";
 import { SECTIONS } from "@/lib/types";
 import { Avatar, Icon, btnClass, type IconName } from "./ui";
 import { Menu, MenuItem, SearchBox } from "./menu";
@@ -33,9 +34,11 @@ const SECTION_ICONS: Record<string, IconName> = {
 };
 
 const QUICK_ACTIONS = [
-  { label: "Edit hero", href: "/dashboard/hero", icon: "image" as IconName, hint: "Judul, tanggal, dan foto pemateri" },
-  { label: "Edit harga & slot", href: "/dashboard/pricing", icon: "ticket" as IconName, hint: "Paket, harga, dan jumlah kursi" },
-  { label: "Edit pemateri", href: "/dashboard/speakers", icon: "mic" as IconName, hint: "Profil dan poin materi" },
+  { label: "Transaksi", href: "/dashboard/transaksi", icon: "receipt" as IconName, hint: "ACC atau tolak pembayaran tiket" },
+  { label: "Customer", href: "/dashboard/customer", icon: "users" as IconName, hint: "Daftar peserta dan riwayat tiket" },
+  { label: "Rekening tujuan", href: "/dashboard/pembayaran", icon: "card" as IconName, hint: "Kelola rekening bank pembayaran" },
+  { label: "Kode referral", href: "/dashboard/referral", icon: "tag" as IconName, hint: "Kelola kupon potongan harga" },
+  { label: "Pengiriman / SMTP", href: "/dashboard/pengiriman", icon: "mail" as IconName, hint: "Pengaturan dan uji email tiket" },
   { label: "Lihat situs", href: "/", icon: "external" as IconName, hint: "Buka halaman pendaftaran" },
 ];
 
@@ -162,13 +165,10 @@ function Rail({
           Lihat situs
         </a>
         <form action={logoutAction}>
-          <button
-            type="submit"
-            className="flex h-9 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[13.5px] font-medium text-dash-muted transition-colors hover:bg-dash-off-bg hover:text-dash-off-fg"
-          >
+          <PendingButton className="flex h-9 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[13.5px] font-medium text-dash-muted transition-colors hover:bg-dash-off-bg hover:text-dash-off-fg disabled:opacity-60">
             <Icon name="logout" className="h-[17px] w-[17px] text-dash-faint" />
             Keluar
-          </button>
+          </PendingButton>
         </form>
       </div>
     </>
@@ -222,19 +222,24 @@ export function Shell({
           </button>
 
           <div className="min-w-0 flex-1 sm:max-w-[440px] xl:max-w-[620px]">
-            <SearchBox />
+            <SearchBox
+              action={path.startsWith("/dashboard/customer") ? "/dashboard/customer" : "/dashboard/transaksi"}
+              placeholder={path.startsWith("/dashboard/customer") ? "Cari customer, email, instansi..." : "Cari peserta, email, atau nomor tiket"}
+            />
           </div>
 
           <div className="ml-auto flex items-center gap-2">
             <div className="flex items-center">
-              <Link
-                href="/dashboard/pembayaran"
-                aria-label="Tambah rekening"
-                className={btnClass("primary", "md", "rounded-r-none")}
+              <a
+                href="/"
+                target="_blank"
+                rel="noreferrer"
+                className={btnClass("outline", "md", "hidden sm:inline-flex rounded-r-none border-r-0")}
+                title="Buka situs di tab baru"
               >
-                <Icon name="plus" className="h-4 w-4" />
-                <span className="hidden sm:inline">Tambah rekening</span>
-              </Link>
+                <Icon name="external" className="h-4 w-4" />
+                <span>Lihat situs</span>
+              </a>
               <Menu
                 width={280}
                 label="Aksi cepat"
@@ -242,9 +247,11 @@ export function Shell({
                   <button
                     type="button"
                     aria-label="Aksi cepat"
-                    className={btnClass("primary", "md", "w-8 rounded-l-none border-l border-white/25 px-0")}
+                    className={btnClass("primary", "md", "gap-1.5 sm:rounded-l-none")}
                   >
-                    <Icon name="chevron" className="h-4 w-4" />
+                    <Icon name="plus" className="h-4 w-4" />
+                    <span className="hidden md:inline">Aksi cepat</span>
+                    <Icon name="chevron" className="h-3.5 w-3.5" />
                   </button>
                 }
               >
@@ -291,7 +298,7 @@ export function Shell({
                 waiting.map((order) => (
                   <Link
                     key={order.id}
-                    href="/dashboard/transaksi"
+                    href="/dashboard/transaksi?status=pending"
                     className="flex items-center gap-2.5 rounded-[9px] px-2.5 py-2 transition-colors hover:bg-dash-bg"
                   >
                     <Avatar name={order.fullName} size={26} />
@@ -305,8 +312,8 @@ export function Shell({
                 ))
               )}
               <div className="mt-1 border-t border-dash-line-soft pt-1">
-                <MenuItem href="/dashboard/transaksi" icon="receipt">
-                  Lihat semua transaksi
+                <MenuItem href="/dashboard/transaksi?status=pending" icon="receipt">
+                  Lihat pembayaran menunggu ACC
                 </MenuItem>
               </div>
             </Menu>
@@ -341,13 +348,10 @@ export function Shell({
                   Lihat situs
                 </MenuItem>
                 <form action={logoutAction}>
-                  <button
-                    type="submit"
-                    className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-left text-[13px] font-medium text-dash-off-fg transition-colors hover:bg-dash-off-bg"
-                  >
+                  <PendingButton className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-left text-[13px] font-medium text-dash-off-fg transition-colors hover:bg-dash-off-bg disabled:opacity-60">
                     <Icon name="logout" className="h-4 w-4 text-dash-faint" />
                     Keluar
-                  </button>
+                  </PendingButton>
                 </form>
               </div>
             </Menu>

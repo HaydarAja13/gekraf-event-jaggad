@@ -10,7 +10,9 @@ import {
   useState,
   type ReactElement,
   type ReactNode,
+  type RefObject,
 } from "react";
+import { useFormStatus } from "react-dom";
 import { Icon, btnClass, type IconName } from "./ui";
 
 /* Dropdown panel. Children are rendered as-is, so a server component can pass
@@ -165,12 +167,14 @@ export function MenuButton({
   );
 }
 
-/* Search field for the top bar. Submits as a GET form, so the query stays in
+/* Search field for the top bar and tables. Submits as a GET form, so the query stays in
    the URL and the count next to the results stays honest. */
 export function SearchBox({
+  action = "/dashboard/transaksi",
   defaultValue = "",
   placeholder = "Cari peserta, email, atau nomor tiket",
 }: {
+  action?: string;
   defaultValue?: string;
   placeholder?: string;
 }) {
@@ -194,7 +198,26 @@ export function SearchBox({
   }, []);
 
   return (
-    <form action="/dashboard/transaksi" className="relative min-w-0 flex-1">
+    <form action={action} className="relative min-w-0 flex-1">
+      <SearchField input={input} hint={hint} defaultValue={defaultValue} placeholder={placeholder} />
+    </form>
+  );
+}
+
+function SearchField({
+  input,
+  hint,
+  defaultValue,
+  placeholder,
+}: {
+  input: RefObject<HTMLInputElement | null>;
+  hint: RefObject<HTMLElement | null>;
+  defaultValue: string;
+  placeholder: string;
+}) {
+  const { pending } = useFormStatus();
+  return (
+    <>
       <Icon
         name="search"
         className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-dash-faint"
@@ -204,17 +227,23 @@ export function SearchBox({
         type="search"
         name="q"
         defaultValue={defaultValue}
-        placeholder={placeholder}
-        aria-label="Cari transaksi"
-        className="h-9.5 w-full rounded-[10px] border border-dash-line bg-dash-bg pr-16 pl-9 text-[13.5px] text-dash-ink outline-none transition-colors placeholder:text-dash-muted focus-visible:border-dash-accent focus-visible:bg-dash-surface"
+        placeholder={pending ? "Mencari…" : placeholder}
+        aria-label={placeholder}
+        aria-busy={pending}
+        disabled={pending}
+        className="h-9.5 w-full rounded-[10px] border border-dash-line bg-dash-bg pr-16 pl-9 text-[13.5px] text-dash-ink outline-none transition-colors placeholder:text-dash-muted focus-visible:border-dash-accent focus-visible:bg-dash-surface disabled:cursor-wait"
       />
-      <kbd
-        ref={hint}
-        className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded-md border border-dash-line bg-dash-surface px-1.5 py-0.5 text-[11px] font-semibold text-dash-muted"
-      >
-        Ctrl K
-      </kbd>
-    </form>
+      {pending ? (
+        <span className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-dash-muted border-r-transparent" />
+      ) : (
+        <kbd
+          ref={hint}
+          className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded-md border border-dash-line bg-dash-surface px-1.5 py-0.5 text-[11px] font-semibold text-dash-muted"
+        >
+          Ctrl K
+        </kbd>
+      )}
+    </>
   );
 }
 
@@ -255,11 +284,22 @@ export function InlineConfirm({
 }
 
 /* Copy-to-clipboard for values an operator retypes often, such as an account
-   number. Falls back to a plain message when the browser refuses access. */
-export function CopyButton({ value, label = "Salin" }: { value: string; label?: string }) {
+   number or ticket code. Falls back to a plain message when the browser refuses access. */
+export function CopyButton({
+  value,
+  label = "Salin",
+  iconOnly = false,
+  className = "",
+}: {
+  value: string;
+  label?: string;
+  iconOnly?: boolean;
+  className?: string;
+}) {
   const [state, setState] = useState<"idle" | "done" | "failed">("idle");
 
-  async function copy() {
+  async function copy(event: React.MouseEvent) {
+    event.stopPropagation();
     try {
       await navigator.clipboard.writeText(value);
       setState("done");
@@ -269,12 +309,113 @@ export function CopyButton({ value, label = "Salin" }: { value: string; label?: 
     setTimeout(() => setState("idle"), 1600);
   }
 
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={copy}
+        title={state === "done" ? "Tersalin!" : `${label}: ${value}`}
+        aria-label={`${label} ${value}`}
+        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-dash-line-soft bg-dash-surface text-dash-muted transition-colors hover:border-dash-line hover:bg-dash-bg hover:text-dash-ink ${
+          state === "done" ? "border-dash-ok-fg/40 bg-dash-ok-bg text-dash-ok-fg" : ""
+        } ${className}`}
+      >
+        <Icon
+          name={state === "done" ? "check" : state === "failed" ? "alert" : "copy"}
+          className="h-3.5 w-3.5"
+        />
+        <span className="sr-only">{state === "done" ? "Tersalin" : label}</span>
+      </button>
+    );
+  }
+
   return (
-    <button type="button" onClick={copy} className={btnClass("ghost", "sm")} aria-label={`${label} ${value}`}>
+    <button
+      type="button"
+      onClick={copy}
+      className={`${btnClass("ghost", "sm")} ${className}`}
+      aria-label={`${label} ${value}`}
+    >
       <Icon name={state === "done" ? "check" : state === "failed" ? "alert" : "copy"} className="h-3.5 w-3.5" />
       {state === "done" ? "Tersalin" : state === "failed" ? "Gagal salin" : label}
     </button>
   );
+}
+
+/* Dedicated ticket badge prominently displayed at the front of tables.
+   Highlighted, bold, monospace, links to public ticket page when active, and has inline copy. */
+export function TicketBadge({
+  ticketNo,
+  status,
+  size = "md",
+  withCopy = false,
+}: {
+  ticketNo?: string | null;
+  status?: string;
+  size?: "sm" | "md";
+  withCopy?: boolean;
+}) {
+  // If transaction was rejected: ticket is void / cancelled
+  if (status === "rejected") {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 font-mono text-[12px] text-dash-muted"
+        title={ticketNo ? `Transaksi ditolak, tiket dibatalkan (${ticketNo})` : "Tidak diterbitkan"}
+      >
+        <span className="line-through opacity-50">{ticketNo || "—"}</span>
+        <span className="rounded bg-dash-off-bg px-1.5 py-0.5 text-[10.5px] font-semibold text-dash-off-fg">
+          Batal
+        </span>
+      </span>
+    );
+  }
+
+  // If pending: waiting for ACC
+  if (status === "pending") {
+    return (
+      <span className="inline-flex flex-wrap items-center gap-1.5">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-md border border-dash-wait-fg/20 bg-dash-wait-bg px-2 py-0.5 text-[11.5px] font-semibold text-dash-wait-fg"
+          title="Tiket akan terbit resmi dan aktif setelah pembayaran di-ACC"
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-dash-wait-fg animate-pulse" />
+          <span>Menunggu ACC</span>
+        </span>
+        {ticketNo ? (
+          <span
+            className="font-mono text-[11px] text-dash-muted"
+            title="Nomor alokasi: aktif setelah ACC"
+          >
+            ({ticketNo})
+          </span>
+        ) : null}
+      </span>
+    );
+  }
+
+  // If approved: ticket is active, bold and highlighted
+  if (ticketNo) {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <Link
+          href={`/tiket/${encodeURIComponent(ticketNo)}`}
+          target="_blank"
+          rel="noreferrer"
+          title="Buka halaman tiket peserta (tab baru)"
+          className={`group inline-flex items-center gap-1.5 rounded-lg border border-dash-fill/30 bg-dash-soft font-mono font-extrabold tracking-wider text-dash-fill shadow-xs transition-all hover:border-dash-fill hover:bg-dash-fill hover:text-white ${
+            size === "sm" ? "px-2 py-0.5 text-[12px]" : "px-2.5 py-1 text-[13px]"
+          }`}
+        >
+          <Icon name="ticket" className="h-3.5 w-3.5 opacity-80 transition group-hover:text-white" />
+          <span>{ticketNo}</span>
+          <Icon name="external" className="h-3 w-3 opacity-50 transition group-hover:opacity-100" />
+        </Link>
+        {withCopy ? <CopyButton value={ticketNo} label="Salin nomor tiket" iconOnly /> : null}
+      </span>
+    );
+  }
+
+  return <span className="font-mono text-[12.5px] text-dash-muted">—</span>;
 }
 
 /* Image inspection for a transfer proof. Escape closes, the page behind

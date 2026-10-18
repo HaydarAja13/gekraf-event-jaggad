@@ -5,6 +5,7 @@ import { formatIdr } from "@/lib/referral";
 import { listSales } from "@/lib/sales";
 import { CopyButton, InlineConfirm } from "../menu";
 import { greeting, todayLine } from "../greeting";
+import { Flash } from "@/app/toast";
 import {
   Btn,
   BtnLink,
@@ -14,7 +15,6 @@ import {
   Field,
   Icon,
   Meta,
-  Notice,
   PageHead,
   Pill,
   inputClass,
@@ -73,18 +73,24 @@ async function Referral({
         }
       />
 
-      {query.saved === "1" ? <Notice tone="ok">Kode referral tersimpan.</Notice> : null}
-      {invalid ? (
-        <Notice tone="off">
-          Nama, kode, dan potongan wajib diisi. Kode minimal 2 karakter, huruf atau angka, dan potongan harus lebih dari nol.
-        </Notice>
-      ) : null}
-      {query.error === "taken" ? <Notice tone="warn">Kode itu sudah dipakai. Gunakan kode yang lain.</Notice> : null}
-      {query.error === "used" ? (
-        <Notice tone="warn">
-          Kode ini sudah tercatat pada transaksi sehingga tidak bisa dihapus. Edit nama atau potongannya kalau ada yang salah.
-        </Notice>
-      ) : null}
+      <Flash
+        items={[
+          query.saved === "1" ? { tone: "ok" as const, text: "Kode referral tersimpan." } : null,
+          invalid
+            ? {
+                tone: "off" as const,
+                text: "Nama, kode, dan potongan wajib diisi. Kode minimal 2 karakter, huruf atau angka, dan potongan harus lebih dari nol.",
+              }
+            : null,
+          query.error === "taken" ? { tone: "warn" as const, text: "Kode itu sudah dipakai. Gunakan kode yang lain." } : null,
+          query.error === "used"
+            ? {
+                tone: "warn" as const,
+                text: "Kode ini sudah tercatat pada transaksi sehingga tidak bisa dihapus. Edit nama atau potongannya kalau ada yang salah.",
+              }
+            : null,
+        ].filter((item) => item !== null)}
+      />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
         <Card>

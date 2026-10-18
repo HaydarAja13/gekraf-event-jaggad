@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { PendingButton } from "@/app/submit";
 
 /*
   Presentational pieces shared by every admin screen. Nothing here is
@@ -173,6 +174,16 @@ export function Btn({
   className?: string;
   type?: "button" | "submit";
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  if (type === "submit") {
+    return (
+      <PendingButton className={btnClass(variant, size, className)} {...rest}>
+        {icon ? <Icon name={icon} className="h-4 w-4" /> : null}
+        {children}
+        {trailingIcon ? <Icon name={trailingIcon} className="h-4 w-4" /> : null}
+      </PendingButton>
+    );
+  }
+
   return (
     <button type={type} className={btnClass(variant, size, className)} {...rest}>
       {icon ? <Icon name={icon} className="h-4 w-4" /> : null}
@@ -365,17 +376,19 @@ export function StatStrip({
 export function TableShell({
   cols,
   minWidth = "880px",
+  dense = false,
   children,
   foot,
 }: {
   cols: { key: string; label: ReactNode; width?: string; align?: "left" | "right" }[];
   minWidth?: string;
+  dense?: boolean;
   children: ReactNode;
   foot?: ReactNode;
 }) {
   return (
     <div className="w-full overflow-x-auto rounded-b-[13px] border-t border-dash-line">
-      <table className="dash-table" style={{ minWidth }}>
+      <table className="dash-table" style={{ minWidth, tableLayout: dense ? "fixed" : undefined }}>
         <colgroup>
           {cols.map((col) => (
             <col key={col.key} style={col.width ? { width: col.width } : undefined} />
@@ -387,7 +400,7 @@ export function TableShell({
               <th
                 key={col.key}
                 scope="col"
-                className={`px-[var(--dash-gutter)] py-2.5 text-[12px] font-semibold text-dash-muted xl:text-[12.5px] ${
+                className={`${dense ? "px-2.5" : "px-[var(--dash-gutter)]"} py-2.5 text-[12px] font-semibold text-dash-muted xl:text-[12.5px] ${
                   col.align === "right" ? "text-right" : "text-left"
                 }`}
               >
@@ -406,15 +419,17 @@ export function TableShell({
 export function Td({
   children,
   align = "left",
+  dense = false,
   className = "",
 }: {
   children?: ReactNode;
   align?: "left" | "right";
+  dense?: boolean;
   className?: string;
 }) {
   return (
     <td
-      className={`px-[var(--dash-gutter)] py-2.5 align-middle text-[13.5px] text-dash-ink xl:py-3 xl:text-[14px] ${
+      className={`${dense ? "px-2.5" : "px-[var(--dash-gutter)]"} py-2.5 align-middle text-[13.5px] text-dash-ink xl:py-3 xl:text-[14px] ${
         align === "right" ? "text-right" : ""
       } ${className}`}
     >
