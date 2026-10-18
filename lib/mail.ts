@@ -51,7 +51,7 @@ function qrCodeTable(data: string): string {
         const width = span * cell;
         cells += runDark
           ? `<td colspan="${span}" width="${width}" height="${cell}" bgcolor="#0b1118"></td>`
-          : `<td colspan="${span}" width="${width}" height="${cell}" bgcolor="#ffffff"></td>`;
+          : `<td colspan="${span}" width="${width}" height="${cell}" bgcolor="#ffffff" style="background-image:linear-gradient(#fff,#fff);"></td>`;
         runStart = x;
         runDark = value;
       }
@@ -136,6 +136,8 @@ export function ticketMessage(input: TicketMail) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <title>Tiket ${ticketNo} — ${event}</title>
   <style type="text/css">
     @media only screen and (max-width: 540px) {
@@ -277,7 +279,7 @@ export function ticketMessage(input: TicketMail) {
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td align="center" style="padding-bottom:22px;">
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:14px; border:2px solid #F2CB19;">
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; background-image:linear-gradient(#fff,#fff); border-radius:14px; border:2px solid #F2CB19;">
                             <tr>
                               <td align="center" style="padding:10px;">
                                 ${qrTable}

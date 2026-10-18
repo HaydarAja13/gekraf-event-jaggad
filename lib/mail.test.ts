@@ -41,6 +41,12 @@ test("payload email: QR tercetak di body, pamflet lampiran biasa, body aman dari
   assert.ok(poster, "pamflet harus terlampir sebagai lampiran biasa");
 
   assert.match(payload.html, /table-layout:fixed/);
+  assert.match(
+    payload.html,
+    /background-image:linear-gradient\(#fff,#fff\)/,
+    "sel putih QR harus dikunci agar Gmail dark mode tidak menggelapkannya",
+  );
+  assert.match(payload.html, /name="color-scheme" content="light dark"/);
   assert.equal(payload.html.includes("<img"), false, "body tidak boleh memuat gambar sama sekali");
   assert.equal(payload.html.includes("api.qrserver.com"), false);
   assert.equal(payload.html.includes("cid:"), false);
