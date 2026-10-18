@@ -19,7 +19,6 @@ export type TicketMail = {
   supportWhatsapp?: string;
   supportLabel?: string;
   organizer?: string;
-  qrSrc?: string;
 };
 
 export function ticketMessage(input: TicketMail) {
@@ -65,9 +64,8 @@ export function ticketMessage(input: TicketMail) {
           "E-tiket ini bersifat unik dan hanya berlaku untuk 1 (satu) kali penukaran wristband / ID Card resmi.",
         ];
 
-  // QR comes from the locally generated PNG attached as a CID part (see ticketMailPayload),
-  // so it never depends on an external image service.
-  const qrSrc = escapeHtml(input.qrSrc || "cid:tiket-qr");
+  // Dynamic QR Code image service (renders crisp PNG in Gmail, Outlook, Apple Mail)
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=440x440&data=${encodeURIComponent(input.pageUrl)}&margin=6&color=0b1118&bgcolor=ffffff`;
 
   const instructionRows = instructions
     .map(
@@ -234,7 +232,7 @@ export function ticketMessage(input: TicketMail) {
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:14px; border:2px solid #F2CB19;">
                             <tr>
                               <td align="center" style="padding:10px;">
-                                <img src="${qrSrc}" alt="QR Code Tiket ${ticketNo}" width="200" height="200" style="display:block; width:200px; height:200px; border-radius:8px;" />
+                                <img src="${qrCodeUrl}" alt="QR Code Tiket ${ticketNo}" width="200" height="200" style="display:block; width:200px; height:200px; border-radius:8px;" />
                               </td>
                             </tr>
                           </table>
@@ -420,31 +418,15 @@ export function ticketMessage(input: TicketMail) {
 }
 
 export async function ticketMailPayload(input: TicketMail) {
-  const QRCode = (await import("qrcode")).default;
   const path = await import("node:path");
   const fs = await import("node:fs");
 
-  // The QR is generated locally as a small PNG (a few KB), so the message body stays
-  // far below Gmail's ~102 KB clipping threshold and never depends on an image service.
-  const qrBuffer = await QRCode.toBuffer(input.pageUrl, {
-    type: "png",
-    width: 440,
-    margin: 2,
-    errorCorrectionLevel: "M",
-    color: { dark: "#0b1118", light: "#ffffff" },
-  });
-
-  const attachments: MailAttachment[] = [
-    {
-      filename: "qr-tiket.png",
-      content: qrBuffer,
-      cid: "tiket-qr",
-      contentType: "image/png",
-    },
-  ];
-
   // The pamphlet rides along as a regular attachment (never embedded in the HTML),
   // so Gmail lists it as a file instead of rendering a broken inline image.
+  // The QR itself is a plain remote image (see ticketMessage), so it never shows up
+  // in the attachment list either.
+  const attachments: MailAttachment[] = [];
+
   const rawPamphlet = input.pamphletUrl || "/pamflet.jpeg";
   let relativePath = "";
   if (/^https?:\/\//i.test(rawPamphlet)) {
