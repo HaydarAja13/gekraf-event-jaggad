@@ -43,8 +43,23 @@ test("payload email: QR tercetak di body, pamflet lampiran biasa, body aman dari
   assert.match(payload.html, /table-layout:fixed/);
   assert.match(
     payload.html,
-    /background-image:linear-gradient\(#fff,#fff\)/,
-    "sel putih QR harus dikunci agar Gmail dark mode tidak menggelapkannya",
+    /class="qr-plate" style="background:#d4f0fa; background-image:linear-gradient\(#d4f0fa,#d4f0fa\)/,
+    "kartu di belakang QR harus cyan muda dan dikunci lewat background-image",
+  );
+  assert.match(
+    payload.html,
+    /background-image:linear-gradient\(#d4f0fa,#d4f0fa\)/,
+    "sel terang QR (cyan muda) harus dikunci agar Gmail dark mode tidak menggelapkannya",
+  );
+  assert.match(
+    payload.html,
+    /background-image:linear-gradient\(#0b1118,#0b1118\)/,
+    "modul hitam QR juga harus dikunci agar tetap hitam di dark mode",
+  );
+  assert.match(
+    payload.html,
+    /@media \(prefers-color-scheme: dark\)/,
+    "aturan warna QR untuk dark mode harus ikut dikirim",
   );
   assert.match(payload.html, /name="color-scheme" content="light dark"/);
   assert.equal(payload.html.includes("<img"), false, "body tidak boleh memuat gambar sama sekali");

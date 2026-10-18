@@ -32,6 +32,15 @@ function qrCodeTable(data: string): string {
   const total = size + quiet * 2;
   const cell = 5;
 
+  // Gmail dark mode recolours plain background colours but leaves
+  // background-image gradients alone, so every square is painted through a
+  // gradient. The quiet zone and light modules are cyan muda — light enough
+  // for scanners, saturated enough to stay light under dark-mode recolouring.
+  const darkInk = "#0b1118";
+  const cyanMuda = "#d4f0fa";
+  const pin = (hex: string) =>
+    `bgcolor="${hex}" style="background-image:linear-gradient(${hex},${hex});"`;
+
   const isDark = (x: number, y: number) => {
     const mx = x - quiet;
     const my = y - quiet;
@@ -50,8 +59,8 @@ function qrCodeTable(data: string): string {
         const span = x - runStart;
         const width = span * cell;
         cells += runDark
-          ? `<td colspan="${span}" width="${width}" height="${cell}" bgcolor="#0b1118"></td>`
-          : `<td colspan="${span}" width="${width}" height="${cell}" bgcolor="#ffffff" style="background-image:linear-gradient(#fff,#fff);"></td>`;
+          ? `<td colspan="${span}" width="${width}" height="${cell}" class="qr-dark" ${pin(darkInk)}></td>`
+          : `<td colspan="${span}" width="${width}" height="${cell}" class="qr-light" ${pin(cyanMuda)}></td>`;
         runStart = x;
         runDark = value;
       }
@@ -61,8 +70,8 @@ function qrCodeTable(data: string): string {
 
   const cols = Array.from({ length: total }, () => `<col width="${cell}" />`).join("");
   return (
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"` +
-    ` style="border-collapse:collapse;table-layout:fixed;width:${total * cell}px;background-color:#ffffff;margin:0 auto;">` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" class="qr-grid"` +
+    ` style="border-collapse:collapse;table-layout:fixed;width:${total * cell}px;background-color:${cyanMuda};background-image:linear-gradient(${cyanMuda},${cyanMuda});margin:0 auto;">` +
     `<colgroup>${cols}</colgroup>${rows.join("")}</table>`
   );
 }
@@ -152,6 +161,12 @@ export function ticketMessage(input: TicketMail) {
       .email-wa-text { display: block !important; width: 100% !important; padding-right: 0 !important; text-align: left !important; margin-bottom: 12px !important; }
       .email-wa-btn { display: block !important; width: 100% !important; text-align: center !important; }
       .email-wa-btn a { display: block !important; width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
+    }
+    /* Declaring the QR colours for dark mode stops clients from recolouring the code. */
+    @media (prefers-color-scheme: dark) {
+      .qr-plate, .qr-grid { background-color: #d4f0fa !important; background-image: linear-gradient(#d4f0fa, #d4f0fa) !important; }
+      .qr-light { background-color: #d4f0fa !important; background-image: linear-gradient(#d4f0fa, #d4f0fa) !important; }
+      .qr-dark { background-color: #0b1118 !important; background-image: linear-gradient(#0b1118, #0b1118) !important; }
     }
   </style>
   <!--[if mso]>
@@ -279,7 +294,7 @@ export function ticketMessage(input: TicketMail) {
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td align="center" style="padding-bottom:22px;">
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; background-image:linear-gradient(#fff,#fff); border-radius:14px; border:2px solid #F2CB19;">
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="qr-plate" style="background:#d4f0fa; background-image:linear-gradient(#d4f0fa,#d4f0fa); border-radius:14px; border:2px solid #F2CB19;">
                             <tr>
                               <td align="center" style="padding:10px;">
                                 ${qrTable}
