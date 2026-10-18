@@ -139,7 +139,7 @@ function transport(row: SmtpRow) {
 }
 
 export type MailAttachment = {
-  filename: string;
+  filename?: string | false;
   path?: string;
   content?: Buffer | string;
   cid?: string;

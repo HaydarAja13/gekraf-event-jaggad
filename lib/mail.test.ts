@@ -27,21 +27,25 @@ test("email tiket memuat data peserta dan menolak sisipan html", () => {
   assert.match(message.text, /Nomor tiket: BSM-AB12CD34/);
 });
 
-test("payload email: pamflet lampiran biasa, QR dari layanan gambar, body kecil", async () => {
+test("payload email: QR inline tanpa nama file, pamflet lampiran biasa, body kecil", async () => {
   const payload = await ticketMailPayload(sample);
 
+  const qr = payload.attachments.find((item) => item.cid === "tiket-qr");
+  assert.ok(qr, "QR harus terpasang sebagai gambar inline (CID)");
+  assert.equal(qr?.contentType, "image/png");
   assert.equal(
-    payload.attachments.some((item) => item.cid),
+    qr?.filename,
     false,
-    "tidak boleh ada lampiran inline — QR tampil sebagai gambar biasa di body",
+    "QR tidak boleh punya nama file — Gmail akan memasukkannya ke daftar lampiran jika ada",
   );
 
   const poster = payload.attachments.find((item) => item.filename === "pamflet.jpeg");
   assert.ok(poster, "pamflet harus terlampir sebagai lampiran biasa");
   assert.equal(poster?.cid, undefined);
 
-  assert.match(payload.html, /api\.qrserver\.com/);
+  assert.match(payload.html, /cid:tiket-qr/);
   assert.equal(payload.html.includes("cid:pamflet-acara"), false);
+  assert.equal(payload.html.includes("api.qrserver.com"), false);
   assert.ok(
     Buffer.byteLength(payload.html) < 60_000,
     "body email harus jauh di bawah batas clip Gmail",
