@@ -115,6 +115,14 @@ function formatSize(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+/** Some phones and download managers report an empty or generic MIME type for a
+ *  perfectly fine JPEG; fall back to the file name before rejecting it. */
+function isImageFile(file: File) {
+  if (file.type.startsWith("image/")) return true;
+  const generic = file.type === "" || file.type === "application/octet-stream";
+  return generic && /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp)$/i.test(file.name);
+}
+
 function ProofPick({ error }: { error?: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [picked, setPicked] = useState<{ name: string; size: string; url: string } | null>(null);
@@ -137,7 +145,7 @@ function ProofPick({ error }: { error?: string }) {
   function accept(file: File | undefined) {
     setLocalError(null);
     if (!file || file.size === 0) return;
-    if (!file.type.startsWith("image/")) {
+    if (!isImageFile(file)) {
       reject("File harus berupa gambar — JPG, PNG, atau WEBP.");
       return;
     }
@@ -207,8 +215,9 @@ function ProofPick({ error }: { error?: string }) {
         <input
           ref={inputRef}
           id="proof"
+          name="proof"
           type="file"
-          accept="image/*"
+          accept="image/*,.jpg,.jpeg,.png,.webp"
           required
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           aria-invalid={invalid ? true : undefined}

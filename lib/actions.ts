@@ -60,17 +60,27 @@ export async function saveSectionAction(formData: FormData) {
   redirect(`/dashboard/${id}?saved=1`);
 }
 
-function imageExt(type: string) {
+function imageExt(type: string, name = "") {
   if (type === "image/png") return ".png";
   if (type === "image/webp") return ".webp";
   if (type === "image/gif") return ".gif";
+  const fromName = /\.(png|webp|gif|jpe?g)$/i.exec(name)?.[0].toLowerCase();
+  if (fromName) return fromName === ".jpeg" ? ".jpg" : fromName;
   return ".jpg";
 }
 
+/** Some phones and download managers report an empty or generic MIME type for a
+ *  perfectly fine JPEG; fall back to the file name before rejecting it. */
+function isImageFile(file: File) {
+  if (file.type.startsWith("image/")) return true;
+  const generic = file.type === "" || file.type === "application/octet-stream";
+  return generic && /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp)$/i.test(file.name);
+}
+
 async function saveImage(file: File, dir: string) {
-  if (!file.type.startsWith("image/") || file.size === 0) return { ok: false as const, error: "File harus gambar." };
+  if (!isImageFile(file) || file.size === 0) return { ok: false as const, error: "File harus gambar." };
   if (file.size > 4 * 1024 * 1024) return { ok: false as const, error: "Gambar maksimal 4 MB." };
-  const name = `${crypto.randomUUID()}${imageExt(file.type)}`;
+  const name = `${crypto.randomUUID()}${imageExt(file.type, file.name)}`;
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
   return { ok: true as const, name };
