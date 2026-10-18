@@ -1,20 +1,38 @@
-import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { cacheLife, cacheTag } from "next/cache";
 import seed from "@/data/site.json";
+import { readCms, writeCms } from "@/lib/cms";
 import { SECTIONS, type SectionId, type Site } from "@/lib/types";
 
-const file = path.join(process.cwd(), "data", "site.json");
+/** Satu dokumen JSON di Supabase Storage. Seed dari data/site.json hanya
+ *  dipakai sebagai default untuk bagian yang belum pernah disimpan — file di
+ *  disk tidak bisa ditulis di Vercel, jadi sumber kebenarannya object storage. */
+const file = "site/site.json";
+
+const seedSite = seed as Site;
+
+function stored(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
 
 export async function getSite(): Promise<Site> {
   "use cache";
   cacheTag("site");
   cacheLife("max");
+  const site: Site = { ...seedSite };
   try {
-    return JSON.parse(await readFile(file, "utf8")) as Site;
+    const saved = stored(await readCms<unknown>(file));
+    for (const section of SECTIONS) {
+      const id = section.id as SectionId;
+      if (sameShape(seedSite[id], saved[id])) {
+        Object.assign(site, { [id]: saved[id] });
+      }
+    }
   } catch {
-    return seed as Site;
+    // Storage sedang tidak bisa dihubungi: halaman tetap tampil dengan seed.
   }
+  return site;
 }
 
 function sameShape(template: unknown, value: unknown): boolean {
@@ -78,12 +96,16 @@ export function sectionStatus(site: Site) {
 export async function saveSection(id: string, value: unknown) {
   const section = SECTIONS.find((item) => item.id === id);
   if (!section) return { ok: false as const, error: "Bagian tidak dikenal." };
-  const template = (seed as Site)[section.id as SectionId];
+  const template = seedSite[section.id as SectionId];
   if (!sameShape(template, value)) {
     return { ok: false as const, error: "Format konten tidak sesuai. Muat ulang halaman lalu coba lagi." };
   }
-  const site = JSON.parse(await readFile(file, "utf8")) as Site;
-  const next = { ...site, [section.id]: value } as Site;
-  await writeFile(file, JSON.stringify(next, null, 2) + "\n");
+  try {
+    const current = stored(await readCms<unknown>(file));
+    await writeCms(file, { ...current, [section.id]: value });
+  } catch (error) {
+    console.error("[cms] storage error", error instanceof Error ? error.message : error);
+    return { ok: false as const, error: "Konten gagal disimpan ke server. Coba lagi beberapa saat." };
+  }
   return { ok: true as const };
 }

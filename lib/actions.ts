@@ -1,11 +1,10 @@
 "use server";
 
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { updateTag } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdmin, login, logout } from "@/lib/auth";
+import { uploadCmsImage } from "@/lib/cms";
 import { sendTicketEmail } from "@/lib/mail";
 import { requestOrigin } from "@/lib/origin";
 import { formatIdr, normalizeReferralCode, parseIdr, payableAmount, validReferralCode } from "@/lib/referral";
@@ -52,11 +51,15 @@ export async function saveSectionAction(formData: FormData) {
   let value: unknown;
   try {
     value = JSON.parse(String(formData.get("payload") ?? ""));
-  } catch {
+  } catch (error) {
+    console.error("[cms] payload tidak bisa diparse", id, error);
     redirect(`/dashboard/${id}?error=1`);
   }
   const result = await saveSection(id, value);
-  if (!result.ok) redirect(`/dashboard/${id}?error=1`);
+  if (!result.ok) {
+    console.error("[cms] gagal simpan", id, result.error);
+    redirect(`/dashboard/${id}?error=1`);
+  }
   updateTag("site");
   redirect(`/dashboard/${id}?saved=1`);
 }
@@ -82,12 +85,14 @@ async function saveImage(file: File) {
   if (!isImageFile(file) || file.size === 0) return { ok: false as const, error: "File harus gambar." };
   if (file.size > 4 * 1024 * 1024) return { ok: false as const, error: "Gambar maksimal 4 MB." };
   const name = `${crypto.randomUUID()}${imageExt(file.type, file.name)}`;
-  // Path ditulis statis (process.cwd() + segmen literal) supaya Turbopack
-  // tidak men-trace seluruh proyek — inilah warning "Dynamic filesystem
-  // access" yang dulu muncul di build Vercel.
-  await mkdir(path.join(process.cwd(), "public", "uploads", "cms"), { recursive: true });
-  await writeFile(path.join(process.cwd(), "public", "uploads", "cms", name), Buffer.from(await file.arrayBuffer()));
-  return { ok: true as const, name };
+  // Vercel tidak mengizinkan tulis ke public/ (read-only), jadi gambar CMS
+  // disimpan di Supabase Storage dan dipakai lewat URL publiknya.
+  try {
+    const src = await uploadCmsImage(name, file);
+    return { ok: true as const, src };
+  } catch {
+    return { ok: false as const, error: "Gambar gagal diunggah ke server. Coba lagi." };
+  }
 }
 
 export async function uploadImageAction(formData: FormData) {
@@ -95,9 +100,7 @@ export async function uploadImageAction(formData: FormData) {
   if (!admin) return { ok: false as const, error: "Login dulu." };
   const file = formData.get("file");
   if (!(file instanceof File)) return { ok: false as const, error: "Pilih gambar." };
-  const saved = await saveImage(file);
-  if (!saved.ok) return saved;
-  return { ok: true as const, src: `/uploads/cms/${saved.name}` };
+  return saveImage(file);
 }
 
 export type CheckoutState = {
@@ -272,7 +275,7 @@ export async function saveTicketSettingsAction(formData: FormData) {
     if (!saved.ok) {
       redirect(`/dashboard/tiket?error=${encodeURIComponent(saved.error)}`);
     }
-    pamphletUrl = `/uploads/cms/${saved.name}`;
+    pamphletUrl = saved.src;
   }
 
   const rawInstructions = String(formData.get("instructions") ?? "");
@@ -281,7 +284,7 @@ export async function saveTicketSettingsAction(formData: FormData) {
     .map((line) => line.trim())
     .filter(Boolean);
 
-  await saveTicketSettings({
+  const stored = await saveTicketSettings({
     eventTitle: String(formData.get("eventTitle") ?? "").trim(),
     eventSubtitle: String(formData.get("eventSubtitle") ?? "").trim(),
     badge: String(formData.get("badge") ?? "").trim(),
@@ -292,6 +295,9 @@ export async function saveTicketSettingsAction(formData: FormData) {
     supportLabel: String(formData.get("supportLabel") ?? "").trim(),
     organizer: String(formData.get("organizer") ?? "").trim(),
   });
+  if (!stored.ok) {
+    redirect(`/dashboard/tiket?error=${encodeURIComponent(stored.error)}`);
+  }
 
   updateTag("ticket-settings");
   redirect("/dashboard/tiket?saved=1");

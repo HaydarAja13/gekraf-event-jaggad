@@ -516,6 +516,24 @@ export async function ticketMailPayload(input: TicketMail) {
         filename: path.basename(localFile),
         path: localFile,
       });
+    } else if (/^https?:\/\//i.test(rawPamphlet)) {
+      // Pamflet hasil upload CMS sekarang tinggal di Supabase Storage, bukan
+      // public/, jadi ambil isinya lalu lampirkan sebagai file biasa.
+      try {
+        const response = await fetch(rawPamphlet, { signal: AbortSignal.timeout(8_000) });
+        if (response.ok) {
+          const content = Buffer.from(await response.arrayBuffer());
+          if (content.length > 0 && content.length <= 20 * 1024 * 1024) {
+            attachments.push({
+              filename: path.basename(new URL(rawPamphlet).pathname) || "pamflet.jpg",
+              content,
+              contentType: response.headers.get("content-type") ?? undefined,
+            });
+          }
+        }
+      } catch {
+        // Lampiran pamflet bersifat best-effort; tiket tetap terkirim.
+      }
     }
   }
 

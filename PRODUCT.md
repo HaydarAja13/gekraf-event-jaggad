@@ -29,8 +29,10 @@ a trained back-office user; the wording is Indonesian and must stay that way.
 - Plans are gated: a later plan only opens once the earlier ones fill up. Slots per plan
   come from the CMS, so the CMS and the quota logic are the same source of truth.
 - Customers are derived from checkout submissions and linked to their orders.
-- The landing page content lives in `data/site.json`, edited section by section through
-  the CMS and read by the public page.
+- The landing page content and ticket email settings live in Supabase Storage
+  (`cms-content`), edited through the CMS and read by the public page. `data/site.json`
+  is only the seed/template; Vercel's filesystem is read-only, so the CMS never writes
+  to disk.
 
 ## Product constraints
 

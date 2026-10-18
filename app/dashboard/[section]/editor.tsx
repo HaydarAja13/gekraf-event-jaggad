@@ -218,7 +218,7 @@ export function Editor({
 
         {failed ? (
           <Notice tone="off">
-            Gagal menyimpan. Format konten tidak sesuai — muat ulang halaman ini, lalu coba lagi.
+            Gagal menyimpan perubahan. Muat ulang halaman ini, lalu coba lagi.
           </Notice>
         ) : null}
 
