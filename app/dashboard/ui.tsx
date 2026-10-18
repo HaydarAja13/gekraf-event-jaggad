@@ -47,6 +47,7 @@ const PATHS = {
   wallet: "M3 8.5A1.5 1.5 0 0 1 4.5 7h15A1.5 1.5 0 0 1 21 8.5v8A1.5 1.5 0 0 1 19.5 18h-15A1.5 1.5 0 0 1 3 16.5zM16 12.5h2",
   info: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M12 11v5.5M12 7.5h.01",
   eye: "M2.5 12S6 6.5 12 6.5 21.5 12 21.5 12 18 17.5 12 17.5 2.5 12 2.5 12M12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5",
+  camera: "M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.2-2h6.6L16.5 7h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5zM12 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7",
   home: "M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z",
   book: "M6 4h9a3 3 0 0 1 3 3v13H8.5A2.5 2.5 0 0 1 6 17.5zM6 4v13.5M11 8.5h4",
   shield: "M12 4l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V7zM9 12l2 2 4-4",
@@ -458,6 +459,31 @@ export function RowHead({
 
 export function Meta({ children }: { children: ReactNode }) {
   return <span className="block text-[12.5px] leading-5 text-dash-muted">{children}</span>;
+}
+
+/** Teks dengan kata kunci pencarian disorot. Aman untuk teks apa pun
+ *  (karakter khusus regex di query tidak ikut dievaluasi). */
+export function Highlight({ text, query }: { text: string; query?: string }) {
+  const needle = (query ?? "").trim();
+  if (!needle) return <>{text}</>;
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.toLowerCase() === needle.toLowerCase() ? (
+          <mark
+            key={index}
+            className="rounded-[3px] bg-dash-accent/20 px-0.5 text-dash-fill"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
 }
 
 export function Progress({

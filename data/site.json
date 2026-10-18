@@ -238,7 +238,7 @@
   "pricing": {
     "badge": "Pilih Tiket",
     "title": "Investasi untuk Masa Depan Bisnis Anda",
-    "body": "Pilih tiket yang sesuai dengan kebutuhan Anda. Kuota terbatas untuk 200 peserta.",
+    "body": "Pilih tiket yang sesuai dengan kebutuhan Anda.",
     "ctaLabel": "Pilih Tiket",
     "ctaHref": "#harga",
     "plans": [
@@ -320,6 +320,6 @@
     "whatsappText": "Info pertanyaan? Hubungi",
     "whatsappNumber": "0822-4198-9936",
     "whatsappHref": "https://wa.me/6282241989936",
-    "image": "https://placehold.co/1920x700/0299c3/018bb0/jpeg?text=Building"
+    "image": "/uploads/cms/5d11c7e9-5289-4fa1-a5fa-055f80b1fa84.png"
   }
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getSite } from "@/lib/site";
 import Navbar from "@/app/components/Navbar";
+import { MetaEvent } from "@/app/meta-pixel";
 import { TicketFrame } from "../ticket";
 import { WhatsAppIcon } from "../icons";
 
@@ -50,6 +51,7 @@ async function SentContent({
   return (
     <>
       <Navbar content={site.navbar} links={false} />
+      {code ? <MetaEvent name="Lead" eventId={code} /> : null}
       <main className="relative flex-1 bg-gekraf-surface">
         <div
           aria-hidden

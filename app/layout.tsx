@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { MetaGate } from "@/app/meta-gate";
 import { ToastViewport } from "@/app/toast";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -19,11 +21,6 @@ export const metadata: Metadata = {
   title: "Business Skill Mastery",
   description:
     "Build Your Business. Lead Your People. Scale Your Impact. — National Business Growth Class",
-  icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
-    shortcut: "/logo.png",
-  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -34,6 +31,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col font-sans">
         {children}
+        <Suspense fallback={null}>
+          <MetaGate />
+        </Suspense>
         <ToastViewport />
       </body>
     </html>

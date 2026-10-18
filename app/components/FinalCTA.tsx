@@ -44,11 +44,11 @@ export default function FinalCTA({ content }: { content: Site["cta"] }) {
           src={content.image}
           alt=""
           fill
-          className="object-cover object-center opacity-[0.25]"
+          className="object-cover object-center opacity-60 sm:opacity-70 lg:opacity-[0.78]"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gekraf-cyan/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-gekraf-cyan via-gekraf-cyan/85 to-gekraf-cyan/60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-gekraf-cyan from-25% via-gekraf-cyan/70 via-50% to-gekraf-cyan/15" />
+        <div className="absolute inset-0 bg-gradient-to-b from-gekraf-cyan/20 via-transparent to-gekraf-cyan/30" />
       </div>
 
       <div className="mx-auto w-[95%] px-4 sm:px-8 lg:px-12 relative grid items-center gap-8 py-16 sm:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:py-24">

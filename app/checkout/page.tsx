@@ -7,6 +7,8 @@ import { getSite } from "@/lib/site";
 import { planState } from "@/lib/slots";
 import type { Site } from "@/lib/types";
 import Navbar from "@/app/components/Navbar";
+import { MetaEvent } from "@/app/meta-pixel";
+import { parseIdr } from "@/lib/referral";
 import { CheckoutForm } from "./form";
 import { BankIcon, CalendarIcon, LockIcon, PinIcon, TicketOffIcon } from "./icons";
 import { TicketFrame } from "./ticket";
@@ -52,18 +54,13 @@ export default async function CheckoutPage({
 function Head({ site }: { site: Site }) {
   return (
     <section className="animate-fade-up">
-      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-8">
-        <div>
-          <p className="text-[13px] font-extrabold tracking-[0.16em] text-gekraf-cyan uppercase">
-            Pendaftaran Tiket
-          </p>
-          <h1 className="mt-2.5 max-w-[15ch] font-serif text-[clamp(2.1rem,3.6vw,2.5rem)] leading-[1.06] font-extrabold tracking-[-0.01em] text-gekraf-ink">
-            Satu tiket, satu kursi, satu hari.
-          </h1>
-        </div>
-        <p className="mt-3 text-[14.5px] leading-[1.6] text-gekraf-muted lg:mt-0 lg:max-w-[260px] lg:text-right">
-          {site.hero.quota}
+      <div>
+        <p className="text-[13px] font-extrabold tracking-[0.16em] text-gekraf-cyan uppercase">
+          Pendaftaran Tiket
         </p>
+        <h1 className="mt-2.5 max-w-[15ch] font-serif text-[clamp(2.1rem,3.6vw,2.5rem)] leading-[1.06] font-extrabold tracking-[-0.01em] text-gekraf-ink">
+          Satu tiket, satu kursi, satu hari.
+        </h1>
       </div>
       <div className="mt-4 flex flex-col gap-2.5 text-[15.5px] sm:flex-row sm:gap-x-8">
         <p className="flex items-start gap-2.5">
@@ -163,7 +160,7 @@ async function LiveTicket({
           name={plan.name}
           icon={<LockIcon size={26} />}
           title={`Paket ${plan.name} belum dibuka`}
-          body="Paket ini terbuka setelah kuota paket sebelumnya terisi penuh. Paket yang sedang dibuka bisa Anda pilih sekarang tanpa kehilangan tempat."
+          body="Paket yang sedang dibuka bisa Anda pilih sekarang."
           action={
             target
               ? { href: `/checkout?plan=${encodeURIComponent(target.name)}`, label: `Lanjut ke ${target.name} · ${target.price}` }
@@ -182,11 +179,11 @@ async function LiveTicket({
         <Notice
           name={plan.name}
           icon={<TicketOffIcon size={26} />}
-          title={`Kuota ${plan.name} sudah habis`}
+          title={`Paket ${plan.name} belum bisa dipilih`}
           body={
             target
-              ? `Paket ${plan.name} sudah penuh terisi. Kabar baiknya, paket ${target.name} sudah dibuka untuk Anda.`
-              : `Paket ${plan.name} sudah penuh terisi. Pantau halaman ini untuk paket berikutnya.`
+              ? `Paket ${target.name} sedang dibuka untuk Anda.`
+              : "Pantau halaman ini untuk paket berikutnya."
           }
           action={
             target
@@ -201,9 +198,14 @@ async function LiveTicket({
 
   return (
     <TicketFrame site={site}>
+      <MetaEvent
+        name="InitiateCheckout"
+        eventId={plan.name}
+        value={parseIdr(plan.price)}
+        contentName={plan.name}
+      />
       <CheckoutForm
         plan={plan}
-        left={state.left}
         accounts={db.accounts}
         whatsappHref={site.cta.whatsappHref}
       />

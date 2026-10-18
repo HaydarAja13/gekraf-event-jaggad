@@ -251,12 +251,10 @@ function ProofPick({ error }: { error?: string }) {
 
 export function CheckoutForm({
   plan,
-  left,
   accounts,
   whatsappHref,
 }: {
   plan: Plan;
-  left: number;
   accounts: PayAccount[];
   whatsappHref: string;
 }) {
@@ -320,10 +318,6 @@ export function CheckoutForm({
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <span className="inline-flex rounded-full border border-[#cfe9f1] bg-[#e8f6fa] px-3.5 py-1.5 text-[13px] font-extrabold tracking-[0.08em] text-[#016b86]">
           {plan.name}
-        </span>
-        <span className="text-[13px] font-semibold text-gekraf-muted">
-          Sisa <b className="font-extrabold text-gekraf-ink tabular-nums">{left}</b> dari{" "}
-          <span className="tabular-nums">{plan.slots}</span> kursi
         </span>
       </div>
 

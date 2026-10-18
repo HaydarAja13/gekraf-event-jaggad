@@ -119,7 +119,6 @@ export default function Hero({ content }: { content: Site["hero"] }) {
               {content.ctaLabel}
               <span aria-hidden>→</span>
             </a>
-            <p className="text-[13px] sm:text-[18px] text-white/65">{content.quota}</p>
           </div>
         </div>
 

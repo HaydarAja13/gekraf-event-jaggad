@@ -138,7 +138,21 @@ function transport(row: SmtpRow) {
   });
 }
 
-export async function deliverMail(input: { to: string; subject: string; text: string; html: string }) {
+export type MailAttachment = {
+  filename: string;
+  path?: string;
+  content?: Buffer | string;
+  cid?: string;
+  contentType?: string;
+};
+
+export async function deliverMail(input: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  attachments?: MailAttachment[];
+}) {
   const row = await loadRow();
   if (!row) {
     return { ok: false as const, error: "SMTP belum diatur. Isi pengaturan di menu Pengiriman." };
@@ -150,6 +164,7 @@ export async function deliverMail(input: { to: string; subject: string; text: st
       subject: input.subject,
       text: input.text,
       html: input.html,
+      attachments: input.attachments,
     });
     return { ok: true as const };
   } catch (error) {

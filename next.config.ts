@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     agentFeedback: true,
+    // Unggahan gambar lewat Server Actions (editor CMS, pamflet tiket) dibatasi
+    // 10MB di sini agar gambar sampai ke validasi aplikasi (maks. 4MB, pesan ramah).
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
   },
   cacheComponents: true,
   partialPrefetching: true,

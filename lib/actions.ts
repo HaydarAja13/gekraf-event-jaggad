@@ -3,7 +3,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { updateTag } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdmin, login, logout } from "@/lib/auth";
 import { sendTicketEmail } from "@/lib/mail";
@@ -13,19 +13,24 @@ import {
   addAccount,
   addReferral,
   approveOrder,
+  checkInByTicket,
   createOrder,
   findReferral,
+  markAttendance,
   orderById,
   rejectOrder,
   removeAccount,
   removeProof,
   removeReferral,
+  undoAttendance,
   updateAccount,
   updateReferral,
   uploadProof,
 } from "@/lib/sales";
+import { readMetaForm, saveMeta, sendMetaTest, trackMeta, verifyMeta } from "@/lib/meta";
 import { readSmtpForm, saveSmtp, validEmail, verifySmtp } from "@/lib/smtp";
 import { getSite, saveSection } from "@/lib/site";
+import { getTicketSettings, saveTicketSettings } from "@/lib/ticket-settings";
 
 export async function loginAction(formData: FormData) {
   const username = String(formData.get("username") ?? "").trim();
@@ -92,11 +97,11 @@ const PLAN_ERRORS: Record<string, { message: string; backToPlans?: boolean }> = 
     message: "Rekening pembayaran ini sudah tidak tersedia. Muat ulang halaman ini lalu coba lagi.",
   },
   slot: {
-    message: "Slot paket ini baru saja habis. Pilih paket lain untuk melanjutkan.",
+    message: "Paket ini belum bisa dipilih. Pilih paket lain untuk melanjutkan.",
     backToPlans: true,
   },
   locked: {
-    message: "Paket ini belum dibuka. Habiskan slot paket sebelumnya dulu.",
+    message: "Paket ini belum dibuka. Pilih paket yang sedang dibuka.",
     backToPlans: true,
   },
 };
@@ -185,8 +190,32 @@ export async function checkoutAction(
       fieldErrors: {},
     };
   }
+  if (result.ticketNo) {
+    const browser = await metaBrowser("/checkout");
+    await trackMeta({
+      eventName: "Lead",
+      eventId: result.ticketNo,
+      email,
+      phone: whatsapp,
+      name: fullName,
+      value: parseIdr(plan.price),
+      contentName: plan.name,
+      ...browser,
+    });
+  }
   const tiket = result.ticketNo ? `?tiket=${encodeURIComponent(result.ticketNo)}` : "";
   redirect(`/checkout/terkirim${tiket}`);
+}
+
+async function metaBrowser(path: string) {
+  const [jar, h, origin] = await Promise.all([cookies(), headers(), requestOrigin()]);
+  return {
+    sourceUrl: `${origin}${path}`,
+    ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "",
+    userAgent: h.get("user-agent") ?? "",
+    fbp: jar.get("_fbp")?.value ?? "",
+    fbc: jar.get("_fbc")?.value ?? "",
+  };
 }
 
 async function requestOrigin() {
@@ -197,9 +226,16 @@ async function requestOrigin() {
 }
 
 async function eventMail(input: { fullName: string; plan: string; amount: string; ticketNo: string; to: string }) {
-  const site = await getSite();
+  const [site, ticketSettings] = await Promise.all([getSite(), getTicketSettings()]);
   const origin = await requestOrigin();
-  const event = [site.hero.titleLine1, site.hero.titleGold, site.hero.titleRest].join(" ").replace(/\s+/g, " ").trim();
+  const event =
+    ticketSettings.eventTitle ||
+    [site.hero.titleLine1, site.hero.titleGold, site.hero.titleRest]
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+  const pamphletUrl = ticketSettings.pamphletUrl || "/pamflet.jpeg";
+
   return sendTicketEmail({
     ...input,
     pageUrl: `${origin}/tiket/${input.ticketNo}`,
@@ -207,8 +243,73 @@ async function eventMail(input: { fullName: string; plan: string; amount: string
     when: `${site.hero.date}, ${site.hero.time}`,
     where: `${site.hero.venue}, ${site.hero.city}`,
     event: event || site.navbar.brand,
-    badge: site.hero.badge,
+    badge: ticketSettings.badge || site.hero.badge,
+    pamphletUrl,
+    subtitle: ticketSettings.eventSubtitle,
+    greeting: ticketSettings.greeting,
+    instructions: ticketSettings.instructions,
+    supportWhatsapp: ticketSettings.supportWhatsapp,
+    supportLabel: ticketSettings.supportLabel,
+    organizer: ticketSettings.organizer,
   });
+}
+
+export async function saveTicketSettingsAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+
+  let pamphletUrl = String(formData.get("pamphletUrl") ?? "").trim();
+  const file = formData.get("pamphletFile");
+  if (file instanceof File && file.size > 0) {
+    const saved = await saveImage(file, path.join(process.cwd(), "public/uploads/cms"));
+    if (!saved.ok) {
+      redirect(`/dashboard/tiket?error=${encodeURIComponent(saved.error)}`);
+    }
+    pamphletUrl = `/uploads/cms/${saved.name}`;
+  }
+
+  const rawInstructions = String(formData.get("instructions") ?? "");
+  const instructions = rawInstructions
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  await saveTicketSettings({
+    eventTitle: String(formData.get("eventTitle") ?? "").trim(),
+    eventSubtitle: String(formData.get("eventSubtitle") ?? "").trim(),
+    badge: String(formData.get("badge") ?? "").trim(),
+    pamphletUrl: pamphletUrl || "/pamflet.jpeg",
+    greeting: String(formData.get("greeting") ?? "").trim(),
+    instructions: instructions.length > 0 ? instructions : undefined,
+    supportWhatsapp: String(formData.get("supportWhatsapp") ?? "").trim(),
+    supportLabel: String(formData.get("supportLabel") ?? "").trim(),
+    organizer: String(formData.get("organizer") ?? "").trim(),
+  });
+
+  updateTag("ticket-settings");
+  redirect("/dashboard/tiket?saved=1");
+}
+
+export async function sendTestTicketEmailAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const to = String(formData.get("to") ?? "").trim();
+  if (!validEmail(to)) {
+    redirect(`/dashboard/tiket?error=${encodeURIComponent("Email penerima belum benar.")}`);
+  }
+  const site = await getSite();
+  const plan = site.pricing.plans[0];
+  const sent = await eventMail({
+    fullName: "Peserta VIP (Uji Coba)",
+    plan: plan?.name ?? "VIP Pass",
+    amount: plan?.price ?? "Rp 999.000",
+    ticketNo: makeTicketNo(),
+    to,
+  });
+  if (!sent.ok) {
+    redirect(`/dashboard/tiket?error=${encodeURIComponent(sent.error)}`);
+  }
+  redirect("/dashboard/tiket?tested=1");
 }
 
 function pengirimanError(message: string): never {
@@ -229,7 +330,50 @@ export async function approveOrderAction(formData: FormData) {
     }),
   );
   if (!result.ok) redirect(`/dashboard/transaksi?error=${encodeURIComponent(result.error)}`);
+  if (result.ticketNo) {
+    const order = await orderById(id);
+    if (order) {
+      const origin = await requestOrigin();
+      await trackMeta({
+        eventName: "Purchase",
+        eventId: `purchase-${result.ticketNo}`,
+        sourceUrl: `${origin}/checkout`,
+        email: order.email,
+        phone: order.whatsapp,
+        name: order.fullName,
+        value: parseIdr(order.amount),
+        contentName: order.plan,
+      });
+    }
+  }
   redirect("/dashboard/transaksi?saved=1");
+}
+
+function metaError(message: string): never {
+  redirect(`/dashboard/meta?error=${encodeURIComponent(message)}`);
+}
+
+export async function saveMetaAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const parsed = readMetaForm(formData);
+  if (!parsed.ok) metaError(parsed.error);
+  const saved = await saveMeta(parsed.value);
+  if (!saved.ok) metaError(saved.error);
+  if (!parsed.value.enabled) redirect("/dashboard/meta?saved=1");
+  const check = await verifyMeta();
+  if (!check.ok) {
+    redirect(`/dashboard/meta?warn=${encodeURIComponent(`Tersimpan, tetapi Meta menolak: ${check.error}`)}`);
+  }
+  redirect(`/dashboard/meta?saved=1&pixel=${encodeURIComponent(check.name)}`);
+}
+
+export async function sendMetaTestAction() {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const sent = await sendMetaTest(`${await requestOrigin()}/`);
+  if (!sent.ok) metaError(sent.error);
+  redirect("/dashboard/meta?tested=1");
 }
 
 export async function saveSmtpAction(formData: FormData) {
@@ -388,4 +532,53 @@ export async function removeAccountAction(formData: FormData) {
     redirect("/dashboard/pembayaran?error=used");
   }
   redirect("/dashboard/pembayaran?saved=1");
+}
+
+/* ---------- attendance (absensi) ---------- */
+
+/** Dipanggil scanner QR di klien. Mengembalikan objek hasil, bukan redirect,
+ *  supaya komponen kamera bisa memberi umpan balik seketika (nama + nada). */
+export type ScanCheckInResult =
+  | { ok: true; name: string; ticketNo: string; plan: string; already: boolean }
+  | { ok: false; error: string };
+
+const SCAN_ERRORS: Record<string, string> = {
+  invalid: "QR tidak dikenali. Pastikan memindai tiket peserta.",
+  notfound: "Nomor tiket tidak ditemukan di sistem.",
+  notapproved: "Pembayaran peserta ini belum di-ACC. Tiket belum berlaku.",
+};
+
+export async function scanCheckInAction(payload: string): Promise<ScanCheckInResult> {
+  const admin = await getAdmin();
+  if (!admin) return { ok: false, error: "Sesi admin berakhir. Muat ulang halaman." };
+  const result = await checkInByTicket(String(payload ?? ""), admin.username);
+  if (!result.ok) return { ok: false, error: SCAN_ERRORS[result.error] ?? SCAN_ERRORS.invalid };
+  return { ok: true, name: result.name, ticketNo: result.ticketNo, plan: result.plan, already: result.already };
+}
+
+/** Susun ulang ke halaman absensi dengan filter yang sedang aktif. */
+function absensiBack(formData: FormData, param: string, value: string) {
+  const query = String(formData.get("back") ?? "").replace(/^\?/, "").trim();
+  return `/dashboard/absensi${query ? `?${query}&` : "?"}${param}=${encodeURIComponent(value)}`;
+}
+
+/** Tandai hadir manual dari baris tabel (tanpa scan). */
+export async function markPresentAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect(absensiBack(formData, "error", "Peserta tidak ditemukan."));
+  const marked = await markAttendance(id, admin.username);
+  if (!marked) {
+    redirect(absensiBack(formData, "error", "Peserta ini sudah hadir atau tiketnya belum berlaku."));
+  }
+  redirect(absensiBack(formData, "saved", "hadir"));
+}
+
+/** Batalkan kehadiran (salah scan / koreksi manual). */
+export async function undoAttendanceAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  await undoAttendance(String(formData.get("id") ?? ""));
+  redirect(absensiBack(formData, "saved", "batal"));
 }

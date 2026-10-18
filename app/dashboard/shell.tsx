@@ -12,10 +12,13 @@ import { Menu, MenuItem, SearchBox } from "./menu";
 const GENERAL: { href: string; label: string; icon: IconName }[] = [
   { href: "/dashboard", label: "Ringkasan", icon: "grid" },
   { href: "/dashboard/transaksi", label: "Transaksi", icon: "receipt" },
+  { href: "/dashboard/absensi", label: "Absensi", icon: "checkCircle" },
   { href: "/dashboard/customer", label: "Customer", icon: "users" },
+  { href: "/dashboard/tiket", label: "Pengaturan Tiket", icon: "ticket" },
   { href: "/dashboard/pembayaran", label: "Rekening", icon: "card" },
   { href: "/dashboard/referral", label: "Referral", icon: "tag" },
   { href: "/dashboard/pengiriman", label: "Pengiriman", icon: "mail" },
+  { href: "/dashboard/meta", label: "Meta Ads", icon: "megaphone" },
 ];
 
 const SECTION_ICONS: Record<string, IconName> = {
@@ -35,10 +38,13 @@ const SECTION_ICONS: Record<string, IconName> = {
 
 const QUICK_ACTIONS = [
   { label: "Transaksi", href: "/dashboard/transaksi", icon: "receipt" as IconName, hint: "ACC atau tolak pembayaran tiket" },
+  { label: "Absensi peserta", href: "/dashboard/absensi", icon: "checkCircle" as IconName, hint: "Scan QR tiket dan rekap kehadiran" },
   { label: "Customer", href: "/dashboard/customer", icon: "users" as IconName, hint: "Daftar peserta dan riwayat tiket" },
+  { label: "Pengaturan Tiket", href: "/dashboard/tiket", icon: "ticket" as IconName, hint: "Kustomisasi email & pamflet tiket" },
   { label: "Rekening tujuan", href: "/dashboard/pembayaran", icon: "card" as IconName, hint: "Kelola rekening bank pembayaran" },
   { label: "Kode referral", href: "/dashboard/referral", icon: "tag" as IconName, hint: "Kelola kupon potongan harga" },
   { label: "Pengiriman / SMTP", href: "/dashboard/pengiriman", icon: "mail" as IconName, hint: "Pengaturan dan uji email tiket" },
+  { label: "Meta Ads", href: "/dashboard/meta", icon: "megaphone" as IconName, hint: "Sambungkan Pixel dan Conversions API" },
   { label: "Lihat situs", href: "/", icon: "external" as IconName, hint: "Buka halaman pendaftaran" },
 ];
 
@@ -223,8 +229,20 @@ export function Shell({
 
           <div className="min-w-0 flex-1 sm:max-w-[440px] xl:max-w-[620px]">
             <SearchBox
-              action={path.startsWith("/dashboard/customer") ? "/dashboard/customer" : "/dashboard/transaksi"}
-              placeholder={path.startsWith("/dashboard/customer") ? "Cari customer, email, instansi..." : "Cari peserta, email, atau nomor tiket"}
+              action={
+                path.startsWith("/dashboard/customer")
+                  ? "/dashboard/customer"
+                  : path.startsWith("/dashboard/absensi")
+                    ? "/dashboard/absensi"
+                    : "/dashboard/transaksi"
+              }
+              placeholder={
+                path.startsWith("/dashboard/customer")
+                  ? "Cari customer, email, instansi..."
+                  : path.startsWith("/dashboard/absensi")
+                    ? "Cari nama peserta, no. tiket, instansi..."
+                    : "Cari peserta, email, atau nomor tiket"
+              }
             />
           </div>
 

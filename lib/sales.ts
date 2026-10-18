@@ -36,6 +36,8 @@ export type Order = {
   referralName: string | null;
   referralCode: string | null;
   discountAmount: number;
+  checkedInAt: string | null;
+  checkedInBy: string | null;
 };
 
 type AccountRow = {
@@ -64,6 +66,8 @@ type OrderRow = {
   referral_name: string | null;
   referral_code: string | null;
   discount_amount: number | null;
+  checked_in_at: string | null;
+  checked_in_by: string | null;
 };
 
 type ReferralRow = {
@@ -108,6 +112,8 @@ function mapOrder(row: OrderRow): Order {
     referralName: row.referral_name,
     referralCode: row.referral_code,
     discountAmount: row.discount_amount ?? 0,
+    checkedInAt: row.checked_in_at ?? null,
+    checkedInBy: row.checked_in_by ?? null,
   };
 }
 
@@ -163,7 +169,16 @@ export async function takenByPlan() {
 export async function createOrder(
   input: Omit<
     Order,
-    "id" | "status" | "ticketNo" | "createdAt" | "referralCodeId" | "referralName" | "referralCode" | "discountAmount"
+    | "id"
+    | "status"
+    | "ticketNo"
+    | "createdAt"
+    | "referralCodeId"
+    | "referralName"
+    | "referralCode"
+    | "discountAmount"
+    | "checkedInAt"
+    | "checkedInBy"
   > & {
     plans: { name: string; slots: string }[];
     referralCode: string;
@@ -377,6 +392,87 @@ export async function orderById(id: string) {
   const { data, error } = await db().from("orders").select("*").eq("id", Number(id)).maybeSingle();
   if (error || !data) return null;
   return mapOrder(data as OrderRow);
+}
+
+/* ---------- attendance ---------- */
+
+/** Peserta yang layak diabsen: pembayaran sudah di-ACC dan tiket terbit. */
+export async function listAttendees() {
+  await connection();
+  const { data, error } = await db()
+    .from("orders")
+    .select("*")
+    .eq("status", "approved")
+    .order("full_name", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as OrderRow[]).map(mapOrder);
+}
+
+/** Ambil nomor tiket dari isi QR apa pun: kode polos ("BSM-0001") atau URL
+ *  tiket dari email ("https://…/tiket/BSM-0001"). Null kalau tidak ada. */
+export function ticketNoFromPayload(payload: string) {
+  const match = payload.toUpperCase().match(/BSM-\d{4,}/);
+  return match ? match[0] : null;
+}
+
+export type CheckInResult =
+  | { ok: true; name: string; ticketNo: string; plan: string; already: boolean }
+  | { ok: false; error: "invalid" | "notfound" | "notapproved" };
+
+/** Tandai hadir lewat nomor tiket (hasil scan QR atau ketikan manual).
+ *  Idempoten: peserta yang sudah hadir dikembalikan dengan already=true. */
+export async function checkInByTicket(payload: string, by: string) {
+  const ticketNo = ticketNoFromPayload(payload);
+  if (!ticketNo) return { ok: false as const, error: "invalid" as const };
+
+  const client = db();
+  const { data: found, error: findError } = await client
+    .from("orders")
+    .select("*")
+    .eq("ticket_no", ticketNo)
+    .maybeSingle();
+  if (findError) throw new Error(findError.message);
+  const row = found as OrderRow | null;
+  if (!row) return { ok: false as const, error: "notfound" as const };
+  if (row.status !== "approved") return { ok: false as const, error: "notapproved" as const };
+
+  const base = { name: row.full_name, ticketNo: row.ticket_no ?? ticketNo, plan: row.plan_name };
+  if (row.checked_in_at) return { ok: true as const, ...base, already: true };
+
+  const { data: updated, error: updateError } = await client
+    .from("orders")
+    .update({ checked_in_at: new Date().toISOString(), checked_in_by: by })
+    .eq("id", row.id)
+    .is("checked_in_at", null)
+    .select("full_name, ticket_no, plan_name");
+  if (updateError) throw new Error(updateError.message);
+  const saved = (updated?.[0] as { full_name: string; ticket_no: string | null; plan_name: string } | undefined) ?? null;
+  if (!saved) return { ok: true as const, ...base, already: true };
+  return { ok: true as const, name: saved.full_name, ticketNo: saved.ticket_no ?? ticketNo, plan: saved.plan_name, already: false };
+}
+
+/** Tandai hadir manual dari tabel (tanpa scan). */
+export async function markAttendance(id: string, by: string) {
+  const { data, error } = await db()
+    .from("orders")
+    .update({ checked_in_at: new Date().toISOString(), checked_in_by: by })
+    .eq("id", Number(id))
+    .eq("status", "approved")
+    .is("checked_in_at", null)
+    .select("id");
+  if (error) throw new Error(error.message);
+  return (data?.length ?? 0) > 0;
+}
+
+/** Batalkan kehadiran (salah scan / koreksi manual). */
+export async function undoAttendance(id: string) {
+  const { error } = await db()
+    .from("orders")
+    .update({ checked_in_at: null, checked_in_by: null })
+    .eq("id", Number(id))
+    .not("checked_in_at", "is", null);
+  if (error) throw new Error(error.message);
+  return true;
 }
 
 function imageExt(type: string) {

@@ -100,36 +100,29 @@ export default function Pricing({
 
               {(() => {
                 const state = planState(content.plans, taken, i);
+                const closed =
+                  "mt-5 inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-[16px] sm:text-[17px] font-extrabold text-white/60";
+                if (state.locked) {
+                  return (
+                    <button type="button" disabled className={closed}>
+                      Belum dibuka
+                    </button>
+                  );
+                }
+                if (state.open) {
+                  return (
+                    <a
+                      href={`/checkout?plan=${encodeURIComponent(p.name)}`}
+                      className="mt-5 inline-flex min-h-[44px] items-center justify-center rounded-full bg-gekraf-gold px-5 py-2.5 text-[16px] sm:text-[17px] font-extrabold text-gekraf-ink shadow-[0_4px_16px_rgba(242,203,25,0.25)] transition hover:bg-gekraf-gold-bright active:scale-[0.99]"
+                    >
+                      {content.ctaLabel}
+                    </a>
+                  );
+                }
                 return (
-                  <>
-                    <p className="mt-5 text-center text-[14px] font-bold text-white/85">
-                      Sisa slot: {state.left}
-                    </p>
-                    {state.locked ? (
-                      <button
-                        type="button"
-                        disabled
-                        className="mt-3 inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-[16px] sm:text-[17px] font-extrabold text-white/60"
-                      >
-                        Belum dibuka
-                      </button>
-                    ) : state.open ? (
-                      <a
-                        href={`/checkout?plan=${encodeURIComponent(p.name)}`}
-                        className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-full bg-gekraf-gold px-5 py-2.5 text-[16px] sm:text-[17px] font-extrabold text-gekraf-ink shadow-[0_4px_16px_rgba(242,203,25,0.25)] transition hover:bg-gekraf-gold-bright active:scale-[0.99]"
-                      >
-                        {content.ctaLabel}
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled
-                        className="mt-3 inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-[16px] sm:text-[17px] font-extrabold text-white/60"
-                      >
-                        Slot habis
-                      </button>
-                    )}
-                  </>
+                  <button type="button" disabled className={closed}>
+                    Tidak tersedia
+                  </button>
                 );
               })()}
             </article>
