@@ -74,7 +74,7 @@ export function Menu({
           className={`absolute top-[calc(100%+6px)] z-40 overflow-hidden rounded-[12px] border border-dash-line bg-dash-surface p-1.5 ${
             align === "right" ? "right-0" : "left-0"
           }`}
-          style={{ width }}
+          style={{ width, maxWidth: "calc(100vw - 1rem)" }}
           onClick={() => setOpen(false)}
         >
           {children}

@@ -54,7 +54,7 @@ function TicketIcon() {
 /**
  * Pembelian tiket palsu di kiri bawah: muncul — tampil beberapa detik —
  * menghilang — jeda acak — kartu berikutnya, terus berputar.
- * Isi (foto, nama, jabatan, paket) datang dari CMS, bukan hard-coded.
+ * Isi (foto dan nama pembeli) datang dari CMS, bukan hard-coded.
  */
 export default function SocialProof({ content }: { content: Content }) {
   const items = content.items ?? [];
@@ -122,7 +122,7 @@ export default function SocialProof({ content }: { content: Content }) {
     <aside
       id="social"
       aria-label="Pembelian tiket terbaru"
-      className="pointer-events-none fixed bottom-3 left-3 z-40 w-[min(21rem,calc(100vw-1.5rem))] sm:bottom-5 sm:left-5"
+      className="pointer-events-none fixed bottom-3 left-3 z-40 w-[min(16.5rem,calc(100vw-1.5rem))] sm:bottom-5 sm:left-5 sm:w-[min(21rem,calc(100vw-2.5rem))]"
     >
       <div
         onMouseEnter={() => {
@@ -143,9 +143,9 @@ export default function SocialProof({ content }: { content: Content }) {
           />
         </div>
 
-        <div className="flex items-center gap-2 px-4 pt-3.5 pb-1">
-          <span className="proof-dot h-2 w-2 shrink-0 rounded-full bg-[#22C55E]" />
-          <p className="min-w-0 flex-1 truncate text-[11px] sm:text-[11.5px] font-extrabold tracking-[0.16em] text-gekraf-cyan uppercase">
+        <div className="flex items-center gap-2 px-3 pt-3 pb-0.5 sm:px-4 sm:pt-3.5 sm:pb-1">
+          <span className="proof-dot h-1.5 w-1.5 shrink-0 rounded-full bg-[#22C55E] sm:h-2 sm:w-2" />
+          <p className="min-w-0 flex-1 truncate text-[10px] font-extrabold tracking-[0.12em] text-gekraf-cyan uppercase sm:text-[11.5px] sm:tracking-[0.16em]">
             {content.badge}
           </p>
           <button
@@ -170,17 +170,17 @@ export default function SocialProof({ content }: { content: Content }) {
           </button>
         </div>
 
-        <div className="flex items-center gap-3.5 px-4 pt-1.5 pb-3.5">
-          <div className="relative h-12 w-12 shrink-0 sm:h-13 sm:w-13">
+        <div className="flex items-center gap-2.5 px-3 pt-1 pb-2.5 sm:gap-3.5 sm:px-4 sm:pt-1.5 sm:pb-3.5">
+          <div className="relative h-9 w-9 shrink-0 sm:h-13 sm:w-13">
             <CmsImage
               src={item.src}
               alt={item.name}
               width={56}
               height={56}
-              className="h-12 w-12 rounded-full object-cover ring-2 ring-gekraf-cyan/15 sm:h-13 sm:w-13"
+              className="h-9 w-9 rounded-full object-cover ring-2 ring-gekraf-cyan/15 sm:h-13 sm:w-13"
             />
-            <span className="absolute -right-0.5 -bottom-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#22C55E] ring-2 ring-white">
-              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <span className="absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#22C55E] ring-2 ring-white sm:h-4.5 sm:w-4.5">
+              <svg width="9" height="9" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="sm:h-[10px] sm:w-[10px]">
                 <path
                   d="M2.5 6.2l2.3 2.3 4.7-4.8"
                   stroke="#fff"
@@ -192,18 +192,13 @@ export default function SocialProof({ content }: { content: Content }) {
             </span>
           </div>
 
-          <div className="min-w-0">
-            <p className="truncate text-[16px] sm:text-[17px] leading-tight font-bold text-gekraf-ink">
-              {item.name}
-            </p>
-            <p className="mt-0.5 text-[13.5px] sm:text-[14px] leading-snug text-[#5F7C97]">
-              {item.role}
-            </p>
-          </div>
+          <p className="min-w-0 truncate text-[14px] leading-tight font-bold text-gekraf-ink sm:text-[17px]">
+            {item.name}
+          </p>
         </div>
 
-        <div className="px-4 pb-4">
-          <p className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-gekraf-gold px-3 py-1.5 text-[11px] sm:text-[11.5px] font-extrabold tracking-[0.1em] text-gekraf-ink uppercase">
+        <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+          <p className="inline-flex max-w-full items-center gap-1 rounded-full bg-gekraf-gold px-2.5 py-1 text-[10px] font-extrabold tracking-[0.08em] text-gekraf-ink uppercase sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-[11.5px] sm:tracking-[0.1em]">
             <TicketIcon />
             <span className="min-w-0 truncate">{content.line}</span>
           </p>

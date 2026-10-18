@@ -200,7 +200,10 @@ export function Shell({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="admin-shell flex h-dvh overflow-hidden bg-dash-bg text-dash-ink">
+    /* Pinned to the viewport, not just tall: only `main` scrolls, so the rail
+       and the top bar stay put even when the browser ignores dvh (or a page
+       grows taller than the window). */
+    <div className="admin-shell fixed inset-0 flex overflow-hidden bg-dash-bg text-dash-ink">
       {open ? (
         <button
           type="button"
@@ -211,7 +214,7 @@ export function Shell({
       ) : null}
 
       <aside
-        className={`${open ? "flex" : "hidden"} fixed inset-y-2 left-2 z-40 w-[252px] flex-col rounded-[16px] border border-dash-line bg-dash-surface lg:static lg:m-2 lg:flex lg:h-[calc(100dvh-1rem)] lg:shrink-0`}
+        className={`${open ? "flex" : "hidden"} fixed inset-y-2 left-2 z-40 w-[252px] max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-[16px] border border-dash-line bg-dash-surface shadow-[0_18px_50px_rgba(20,24,31,0.18)] lg:static lg:m-2 lg:flex lg:h-auto lg:shrink-0 lg:shadow-none`}
       >
         <Rail path={path} pending={pending} brand={brand} logo={logo} onNavigate={() => setOpen(false)} />
       </aside>
@@ -222,67 +225,76 @@ export function Shell({
             type="button"
             aria-label="Buka menu"
             onClick={() => setOpen(true)}
-            className={`${btnClass("outline", "md", "lg:hidden")} w-9.5 px-0`}
+            className={`${btnClass("outline", "md", "lg:hidden")} w-9.5 shrink-0 px-0`}
           >
             <Icon name="bars" className="h-4 w-4" />
           </button>
 
+          {/* Di ponsel judul brand mengisi ruang; kotak pencarian baru muncul
+              mulai sm supaya bar atas tidak berdesakan. */}
           <div className="min-w-0 flex-1 sm:max-w-[440px] xl:max-w-[620px]">
-            <SearchBox
-              action={
-                path.startsWith("/dashboard/customer")
-                  ? "/dashboard/customer"
-                  : path.startsWith("/dashboard/absensi")
-                    ? "/dashboard/absensi"
-                    : "/dashboard/transaksi"
-              }
-              placeholder={
-                path.startsWith("/dashboard/customer")
-                  ? "Cari customer, email, instansi..."
-                  : path.startsWith("/dashboard/absensi")
-                    ? "Cari nama peserta, no. tiket, instansi..."
-                    : "Cari peserta, email, atau nomor tiket"
-              }
-            />
+            <span className="block truncate text-[14.5px] font-bold tracking-[-0.01em] text-dash-ink sm:hidden">
+              {brand}
+            </span>
+            <div className="hidden sm:block">
+              <SearchBox
+                action={
+                  path.startsWith("/dashboard/customer")
+                    ? "/dashboard/customer"
+                    : path.startsWith("/dashboard/absensi")
+                      ? "/dashboard/absensi"
+                      : "/dashboard/transaksi"
+                }
+                placeholder={
+                  path.startsWith("/dashboard/customer")
+                    ? "Cari customer, email, instansi..."
+                    : path.startsWith("/dashboard/absensi")
+                      ? "Cari nama peserta, no. tiket, instansi..."
+                      : "Cari peserta, email, atau nomor tiket"
+                }
+              />
+            </div>
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
-            <div className="flex items-center">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            {/* `hidden` tidak bisa menimpa inline-flex dari btnClass, jadi
+                tombolnya dibungkus. */}
+            <span className="hidden lg:flex">
               <a
                 href="/"
                 target="_blank"
                 rel="noreferrer"
-                className={btnClass("outline", "md", "hidden sm:inline-flex rounded-r-none border-r-0")}
+                className={btnClass("outline", "md")}
                 title="Buka situs di tab baru"
               >
                 <Icon name="external" className="h-4 w-4" />
                 <span>Lihat situs</span>
               </a>
-              <Menu
-                width={280}
-                label="Aksi cepat"
-                trigger={
-                  <button
-                    type="button"
-                    aria-label="Aksi cepat"
-                    className={btnClass("primary", "md", "gap-1.5 sm:rounded-l-none")}
-                  >
-                    <Icon name="plus" className="h-4 w-4" />
-                    <span className="hidden md:inline">Aksi cepat</span>
-                    <Icon name="chevron" className="h-3.5 w-3.5" />
-                  </button>
-                }
-              >
-                <p className="px-2.5 py-1.5 text-[11.5px] font-bold tracking-[0.08em] text-dash-muted">
-                  AKSI CEPAT
-                </p>
-                {QUICK_ACTIONS.map((action) => (
-                  <MenuItem key={action.href} href={action.href} icon={action.icon} hint={action.hint}>
-                    {action.label}
-                  </MenuItem>
-                ))}
-              </Menu>
-            </div>
+            </span>
+            <Menu
+              width={280}
+              label="Aksi cepat"
+              trigger={
+                <button
+                  type="button"
+                  aria-label="Aksi cepat"
+                  className={btnClass("primary", "md", "gap-1.5")}
+                >
+                  <Icon name="plus" className="h-4 w-4" />
+                  <span className="hidden md:inline">Aksi cepat</span>
+                  <Icon name="chevron" className="h-3.5 w-3.5" />
+                </button>
+              }
+            >
+              <p className="px-2.5 py-1.5 text-[11.5px] font-bold tracking-[0.08em] text-dash-muted">
+                AKSI CEPAT
+              </p>
+              {QUICK_ACTIONS.map((action) => (
+                <MenuItem key={action.href} href={action.href} icon={action.icon} hint={action.hint}>
+                  {action.label}
+                </MenuItem>
+              ))}
+            </Menu>
 
             <span className="hidden h-6 w-px bg-dash-line sm:block" />
 
@@ -376,7 +388,7 @@ export function Shell({
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-y-auto">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <div className="w-full px-4 py-5 sm:px-6 sm:py-6 xl:px-8 xl:py-7 2xl:px-10">{children}</div>
         </main>
       </div>

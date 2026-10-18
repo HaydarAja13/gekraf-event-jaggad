@@ -79,7 +79,8 @@ export type Site = {
   social: {
     badge: string;
     line: string;
-    items: { name: string; role: string; src: string }[];
+    /* Nama dan foto saja: notifikasi ini tentang pembelian, bukan jabatan. */
+    items: { name: string; src: string }[];
   };
   faq: {
     badge: string;
@@ -113,7 +114,7 @@ export const SECTIONS = [
   {
     id: "social",
     label: "Pembelian Terbaru",
-    hint: "Popup kiri bawah yang muncul berulang: nama, jabatan, dan foto pembeli.",
+    hint: "Popup kiri bawah yang muncul berulang: nama dan foto pembeli.",
   },
   { id: "pricing", label: "Harga", hint: "Paket, harga coret, harga asli, dan jumlah slot." },
   { id: "faq", label: "FAQ", hint: "Pertanyaan dan jawaban." },
