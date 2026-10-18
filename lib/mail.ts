@@ -1,3 +1,4 @@
+import QRCode from "qrcode";
 import type { MailAttachment } from "@/lib/smtp";
 
 export type TicketMail = {
@@ -19,8 +20,52 @@ export type TicketMail = {
   supportWhatsapp?: string;
   supportLabel?: string;
   organizer?: string;
-  qrSrc?: string;
 };
+
+function qrCodeTable(data: string): string {
+  // Real QR matrix from the encoder; each row is emitted as runs of cells so the
+  // whole code stays a few dozen KB. Fixed layout + explicit cell sizes keep the
+  // modules square in every major client (Gmail, Apple Mail, Outlook web).
+  const qr = QRCode.create(data, { errorCorrectionLevel: "M" });
+  const size = qr.modules.size;
+  const quiet = 4;
+  const total = size + quiet * 2;
+  const cell = 5;
+
+  const isDark = (x: number, y: number) => {
+    const mx = x - quiet;
+    const my = y - quiet;
+    if (mx < 0 || my < 0 || mx >= size || my >= size) return false;
+    return Boolean(qr.modules.get(my, mx));
+  };
+
+  const rows: string[] = [];
+  for (let y = 0; y < total; y += 1) {
+    let cells = "";
+    let runStart = 0;
+    let runDark = isDark(0, y);
+    for (let x = 1; x <= total; x += 1) {
+      const value = x < total ? isDark(x, y) : !runDark;
+      if (value !== runDark) {
+        const span = x - runStart;
+        const width = span * cell;
+        cells += runDark
+          ? `<td colspan="${span}" width="${width}" height="${cell}" bgcolor="#0b1118"></td>`
+          : `<td colspan="${span}" width="${width}" height="${cell}" bgcolor="#ffffff"></td>`;
+        runStart = x;
+        runDark = value;
+      }
+    }
+    rows.push(`<tr>${cells}</tr>`);
+  }
+
+  const cols = Array.from({ length: total }, () => `<col width="${cell}" />`).join("");
+  return (
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"` +
+    ` style="border-collapse:collapse;table-layout:fixed;width:${total * cell}px;background-color:#ffffff;margin:0 auto;">` +
+    `<colgroup>${cols}</colgroup>${rows.join("")}</table>`
+  );
+}
 
 export function ticketMessage(input: TicketMail) {
   const name = escapeHtml(input.fullName);
@@ -65,12 +110,10 @@ export function ticketMessage(input: TicketMail) {
           "E-tiket ini bersifat unik dan hanya berlaku untuk 1 (satu) kali penukaran wristband / ID Card resmi.",
         ];
 
-  // The QR is a locally generated PNG sent as an inline CID image (see
-  // ticketMailPayload): it is embedded in the message itself, so it still renders
-  // when Gmail blocks external images (e.g. while the email sits in Spam), and it
-  // carries no filename so Gmail never lists it in the attachment strip. The
-  // admin preview overrides qrSrc with a data URI because cid: is email-only.
-  const qrSrc = escapeHtml(input.qrSrc || "cid:tiket-qr");
+  // The QR is drawn directly in the email as a small grid of table cells — no
+  // image file, no external service, no attachment. Gmail cannot block it (it
+  // renders with images off and in Spam alike) and cannot list it as a file.
+  const qrTable = qrCodeTable(input.pageUrl || input.ticketNo);
 
   const instructionRows = instructions
     .map(
@@ -237,7 +280,7 @@ export function ticketMessage(input: TicketMail) {
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:14px; border:2px solid #F2CB19;">
                             <tr>
                               <td align="center" style="padding:10px;">
-                                <img src="${qrSrc}" alt="QR Code Tiket ${ticketNo}" width="200" height="200" style="display:block; width:200px; height:200px; border-radius:8px;" />
+                                ${qrTable}
                               </td>
                             </tr>
                           </table>
@@ -423,32 +466,12 @@ export function ticketMessage(input: TicketMail) {
 }
 
 export async function ticketMailPayload(input: TicketMail) {
-  const QRCode = (await import("qrcode")).default;
   const path = await import("node:path");
   const fs = await import("node:fs");
 
-  // The QR is generated locally as a small PNG (a few KB) and travels inside the
-  // message as an inline CID image: it renders even when Gmail blocks external
-  // images (e.g. while the email sits in Spam), it never depends on an external
-  // service, and without a filename Gmail keeps it out of the attachment list.
-  const qrBuffer = await QRCode.toBuffer(input.pageUrl, {
-    type: "png",
-    width: 440,
-    margin: 2,
-    errorCorrectionLevel: "M",
-    color: { dark: "#0b1118", light: "#ffffff" },
-  });
-
-  const attachments: MailAttachment[] = [
-    {
-      content: qrBuffer,
-      cid: "tiket-qr",
-      contentType: "image/png",
-      // `false` tells nodemailer to attach NO filename — without it nodemailer
-      // invents "attachment-1.png" and Gmail lists the QR as a file attachment.
-      filename: false,
-    },
-  ];
+  // The QR is drawn inside the HTML body itself (see qrCodeTable), so no image
+  // part is attached at all — nothing to block, nothing to list as a file.
+  const attachments: MailAttachment[] = [];
 
   // The pamphlet rides along as a regular attachment (never embedded in the HTML),
   // so Gmail lists it as a file instead of rendering a broken inline image.

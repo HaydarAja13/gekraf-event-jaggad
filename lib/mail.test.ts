@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import jsQR from "jsqr";
 import { ticketMailPayload, ticketMessage } from "./mail.ts";
 
 const sample = {
@@ -27,27 +28,65 @@ test("email tiket memuat data peserta dan menolak sisipan html", () => {
   assert.match(message.text, /Nomor tiket: BSM-AB12CD34/);
 });
 
-test("payload email: QR inline tanpa nama file, pamflet lampiran biasa, body kecil", async () => {
+test("payload email: QR tercetak di body, pamflet lampiran biasa, body aman dari clip", async () => {
   const payload = await ticketMailPayload(sample);
 
-  const qr = payload.attachments.find((item) => item.cid === "tiket-qr");
-  assert.ok(qr, "QR harus terpasang sebagai gambar inline (CID)");
-  assert.equal(qr?.contentType, "image/png");
   assert.equal(
-    qr?.filename,
+    payload.attachments.some((item) => item.cid),
     false,
-    "QR tidak boleh punya nama file — Gmail akan memasukkannya ke daftar lampiran jika ada",
+    "tidak boleh ada lampiran inline — QR harus jadi bagian dari body",
   );
-
+  assert.equal(payload.attachments.length, 1, "hanya pamflet yang boleh menjadi lampiran");
   const poster = payload.attachments.find((item) => item.filename === "pamflet.jpeg");
   assert.ok(poster, "pamflet harus terlampir sebagai lampiran biasa");
-  assert.equal(poster?.cid, undefined);
 
-  assert.match(payload.html, /cid:tiket-qr/);
-  assert.equal(payload.html.includes("cid:pamflet-acara"), false);
+  assert.match(payload.html, /table-layout:fixed/);
+  assert.equal(payload.html.includes("<img"), false, "body tidak boleh memuat gambar sama sekali");
   assert.equal(payload.html.includes("api.qrserver.com"), false);
+  assert.equal(payload.html.includes("cid:"), false);
   assert.ok(
-    Buffer.byteLength(payload.html) < 60_000,
+    Buffer.byteLength(payload.html) < 95_000,
     "body email harus jauh di bawah batas clip Gmail",
   );
+});
+
+test("QR di email bisa dipindai ulang oleh pemindai independen", () => {
+  const message = ticketMessage(sample);
+  const table = message.html.match(
+    /<table[^>]*table-layout:fixed[^>]*>([\s\S]*?)<\/table>/,
+  )?.[1];
+  assert.ok(table, "tabel QR harus ada di body email");
+
+  const matrix = (table.match(/<tr>([\s\S]*?)<\/tr>/g) ?? []).map((row) =>
+    [...row.matchAll(/<td ([^>]*)>/g)].flatMap((match) => {
+      const attrs = match[1];
+      const span = Number(attrs.match(/colspan="(\d+)"/)?.[1] ?? 1);
+      const dark = /bgcolor="#0b1118"/.test(attrs);
+      return Array.from({ length: span }, () => dark);
+    }),
+  );
+
+  const width = matrix[0]?.length ?? 0;
+  assert.ok(width > 20, "matriks QR harus punya ukuran wajar");
+  assert.ok(matrix.length === width, "matriks QR harus persegi");
+  assert.ok(
+    matrix.every((row) => row.length === width),
+    "setiap baris QR harus sama lebar",
+  );
+
+  const scale = 8;
+  const pixels = new Uint8ClampedArray(width * scale * matrix.length * scale * 4);
+  for (let y = 0; y < matrix.length * scale; y += 1) {
+    for (let x = 0; x < width * scale; x += 1) {
+      const value = matrix[Math.floor(y / scale)][Math.floor(x / scale)] ? 0 : 255;
+      const idx = (y * width * scale + x) * 4;
+      pixels[idx] = value;
+      pixels[idx + 1] = value;
+      pixels[idx + 2] = value;
+      pixels[idx + 3] = 255;
+    }
+  }
+
+  const decoded = jsQR(pixels, width * scale, matrix.length * scale);
+  assert.equal(decoded?.data, sample.pageUrl, "isi QR harus persis URL tiket peserta");
 });

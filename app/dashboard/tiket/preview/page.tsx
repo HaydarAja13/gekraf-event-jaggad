@@ -30,20 +30,12 @@ async function TicketPreviewContent() {
   const [site, settings] = await Promise.all([getSite(), getTicketSettings()]);
 
   // Generate live sample email preview using current settings
-  const samplePageUrl = "https://gekraf-jateng.id/tiket/BSM-74829-VIP";
-  const QRCode = (await import("qrcode")).default;
-  const sampleQr = await QRCode.toDataURL(samplePageUrl, {
-    width: 440,
-    margin: 2,
-    errorCorrectionLevel: "M",
-    color: { dark: "#0b1118", light: "#ffffff" },
-  });
   const sampleMessage = ticketMessage({
     fullName: "Ahmad Rizky Pratama",
     plan: "VIP Exclusive Pass",
     amount: "Rp 1.499.000",
     ticketNo: "BSM-74829-VIP",
-    pageUrl: samplePageUrl,
+    pageUrl: "https://gekraf-jateng.id/tiket/BSM-74829-VIP",
     downloadUrl: "https://gekraf-jateng.id/tiket/BSM-74829-VIP/unduh",
     when: `${site.hero.date}, ${site.hero.time}`,
     where: `${site.hero.venue}, ${site.hero.city}`,
@@ -51,7 +43,6 @@ async function TicketPreviewContent() {
     badge: settings.badge || "E-TIKET RESMI · VIP PASS",
     to: "peserta@example.com",
     pamphletUrl: settings.pamphletUrl || "/pamflet.jpeg",
-    qrSrc: sampleQr,
     subtitle: settings.eventSubtitle,
     greeting: settings.greeting,
     instructions: settings.instructions,
