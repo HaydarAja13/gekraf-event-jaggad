@@ -78,12 +78,15 @@ function isImageFile(file: File) {
   return generic && /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp)$/i.test(file.name);
 }
 
-async function saveImage(file: File, dir: string) {
+async function saveImage(file: File) {
   if (!isImageFile(file) || file.size === 0) return { ok: false as const, error: "File harus gambar." };
   if (file.size > 4 * 1024 * 1024) return { ok: false as const, error: "Gambar maksimal 4 MB." };
   const name = `${crypto.randomUUID()}${imageExt(file.type, file.name)}`;
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
+  // Path ditulis statis (process.cwd() + segmen literal) supaya Turbopack
+  // tidak men-trace seluruh proyek — inilah warning "Dynamic filesystem
+  // access" yang dulu muncul di build Vercel.
+  await mkdir(path.join(process.cwd(), "public", "uploads", "cms"), { recursive: true });
+  await writeFile(path.join(process.cwd(), "public", "uploads", "cms", name), Buffer.from(await file.arrayBuffer()));
   return { ok: true as const, name };
 }
 
@@ -92,7 +95,7 @@ export async function uploadImageAction(formData: FormData) {
   if (!admin) return { ok: false as const, error: "Login dulu." };
   const file = formData.get("file");
   if (!(file instanceof File)) return { ok: false as const, error: "Pilih gambar." };
-  const saved = await saveImage(file, path.join(process.cwd(), "public/uploads/cms"));
+  const saved = await saveImage(file);
   if (!saved.ok) return saved;
   return { ok: true as const, src: `/uploads/cms/${saved.name}` };
 }
@@ -265,7 +268,7 @@ export async function saveTicketSettingsAction(formData: FormData) {
   let pamphletUrl = String(formData.get("pamphletUrl") ?? "").trim();
   const file = formData.get("pamphletFile");
   if (file instanceof File && file.size > 0) {
-    const saved = await saveImage(file, path.join(process.cwd(), "public/uploads/cms"));
+    const saved = await saveImage(file);
     if (!saved.ok) {
       redirect(`/dashboard/tiket?error=${encodeURIComponent(saved.error)}`);
     }

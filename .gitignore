@@ -36,7 +36,8 @@ yarn-error.log*
 # sales records and payment proofs
 /data/sales.json
 /data/proofs/
-/public/uploads/
+# Folder /public/uploads sengaja TIDAK di-ignore: gambar yang diupload dari
+# dashboard ikut ter-deploy. Kalau di-ignore, gambar 404 di production.
 
 # vercel
 .vercel
