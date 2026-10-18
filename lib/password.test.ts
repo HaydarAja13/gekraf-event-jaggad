@@ -4,20 +4,21 @@ import test from "node:test";
 import { hashPassword, verifyPassword } from "./password.ts";
 import { readSession, signSession } from "./session-token.ts";
 
-test("seeded admin row accepts admin123", () => {
+test("seeded admin row accepts the current admin password", () => {
   const users = JSON.parse(
     readFileSync(new URL("../data/users.json", import.meta.url), "utf8"),
   ) as { username: string; password: string }[];
   const admin = users.find((user) => user.username === "admin");
   assert.ok(admin);
-  assert.equal(verifyPassword("admin123", admin.password), true);
+  assert.equal(verifyPassword("gekrafjaggad5657", admin.password), true);
+  assert.equal(verifyPassword("admin123", admin.password), false);
 });
 
-test("password admin123 matches its hash and rejects a wrong one", () => {
-  const stored = hashPassword("admin123");
-  assert.equal(verifyPassword("admin123", stored), true);
-  assert.equal(verifyPassword("admin124", stored), false);
-  assert.equal(verifyPassword("admin123", "not-a-hash"), false);
+test("password hash matches its input and rejects a wrong one", () => {
+  const stored = hashPassword("sandi-uji-123");
+  assert.equal(verifyPassword("sandi-uji-123", stored), true);
+  assert.equal(verifyPassword("sandi-uji-124", stored), false);
+  assert.equal(verifyPassword("sandi-uji-123", "not-a-hash"), false);
 });
 
 test("session token accepts a valid signature and rejects tampering", () => {

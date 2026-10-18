@@ -348,43 +348,15 @@ export function Shell({
               </div>
             </Menu>
 
-            <Menu
-              width={236}
-              label="Akun"
-              trigger={
-                <button
-                  type="button"
-                  aria-label={`Akun ${username}`}
-                  className={btnClass("ghost", "md", "h-10 gap-2 pr-2 pl-1")}
-                >
-                  <Avatar name={username} size={30} />
-                  <span className="hidden text-left leading-tight sm:block">
-                    <span className="block text-[13px] font-semibold text-dash-ink">{username}</span>
-                    <span className="block text-[11.5px] text-dash-muted">Admin</span>
-                  </span>
-                  <Icon name="chevron" className="hidden h-4 w-4 text-dash-faint sm:block" />
-                </button>
-              }
-            >
-              <div className="flex items-center gap-2.5 px-2.5 pt-1.5 pb-2.5">
-                <Avatar name={username} size={34} />
-                <span className="min-w-0">
-                  <span className="block truncate text-[13.5px] font-semibold text-dash-ink">{username}</span>
-                  <span className="block text-[12px] text-dash-muted">Masuk sebagai admin</span>
-                </span>
-              </div>
-              <div className="border-t border-dash-line-soft pt-1">
-                <MenuItem href="/" icon="external">
-                  Lihat situs
-                </MenuItem>
-                <form action={logoutAction}>
-                  <PendingButton className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-left text-[13px] font-medium text-dash-off-fg transition-colors hover:bg-dash-off-bg disabled:opacity-60">
-                    <Icon name="logout" className="h-4 w-4 text-dash-faint" />
-                    Keluar
-                  </PendingButton>
-                </form>
-              </div>
-            </Menu>
+            {/* Identitas saja: Keluar hanya ada di sidebar, jadi ikon akun di
+                sini tidak membuka dropdown apa pun. */}
+            <div className="flex h-10 items-center gap-2 pr-1 pl-1" title={`Masuk sebagai ${username}`}>
+              <Avatar name={username} size={30} />
+              <span className="hidden text-left leading-tight sm:block">
+                <span className="block text-[13px] font-semibold text-dash-ink">{username}</span>
+                <span className="block text-[11.5px] text-dash-muted">Admin</span>
+              </span>
+            </div>
           </div>
         </header>
 
