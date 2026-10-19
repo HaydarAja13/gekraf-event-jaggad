@@ -1,8 +1,12 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { approveOrderAction, rejectOrderAction } from "@/lib/actions";
+import { approveOrderAction, rejectOrderAction, resendTicketAction } from "@/lib/actions";
 import { getAdmin } from "@/lib/auth";
+import { requestOrigin } from "@/lib/origin";
 import { listSales } from "@/lib/sales";
+import { getSite } from "@/lib/site";
+import { getTicketSettings } from "@/lib/ticket-settings";
+import { waTicketUrl } from "@/lib/whatsapp";
 import { InlineConfirm, ProofPreview, SearchBox } from "../menu";
 import { formatIdr } from "@/lib/referral";
 import { greeting, orderStamp, todayLine } from "../greeting";
@@ -20,6 +24,7 @@ import {
   Pill,
   TableShell,
   Td,
+  WhatsAppIcon,
   btnClass,
 } from "../ui";
 
@@ -33,7 +38,7 @@ const FILTERS = [
 export default function TransaksiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; saved?: string; error?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; saved?: string; sent?: string; error?: string }>;
 }) {
   return (
     <Suspense fallback={<TransaksiFallback />}>
@@ -55,10 +60,16 @@ function TransaksiFallback() {
 async function Transaksi({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; saved?: string; error?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; saved?: string; sent?: string; error?: string }>;
 }) {
   const query = await searchParams;
-  const [db, admin] = await Promise.all([listSales(), getAdmin()]);
+  const [db, admin, site, ticketSettings, origin] = await Promise.all([
+    listSales(),
+    getAdmin(),
+    getSite(),
+    getTicketSettings(),
+    requestOrigin(),
+  ]);
   const q = (query.q ?? "").trim();
   const needle = q.toLowerCase();
   const status = FILTERS.some((filter) => filter.key === query.status) ? query.status! : "semua";
@@ -81,6 +92,27 @@ async function Transaksi({
 
   const filtered = Boolean(needle) || status !== "semua";
 
+  // Tautan wa.me disiapkan sekali per baris supaya isi chat selalu memuat
+  // tiket yang benar dan tombolnya tidak perlu menghitung ulang saat render.
+  const event = ticketSettings.eventTitle;
+  const when = `${site.hero.date}, ${site.hero.time}`;
+  const where = `${site.hero.venue}, ${site.hero.city}`;
+  const waLinks = new Map(
+    orders.flatMap((order) => {
+      if (order.status !== "approved" || !order.ticketNo) return [];
+      const href = waTicketUrl(order.whatsapp, {
+        fullName: order.fullName,
+        plan: order.plan,
+        ticketNo: order.ticketNo,
+        event,
+        when,
+        where,
+        pageUrl: `${origin}/tiket/${encodeURIComponent(order.ticketNo)}`,
+      });
+      return [[order.id, href] as const];
+    }),
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <PageHead
@@ -102,6 +134,7 @@ async function Transaksi({
       <Flash
         items={[
           query.saved === "1" ? { tone: "ok" as const, text: "Tiket terkirim ke email peserta." } : null,
+          query.sent === "1" ? { tone: "ok" as const, text: "Tiket dikirim ulang ke email peserta." } : null,
           query.error ? { tone: "off" as const, text: query.error } : null,
         ].filter((item) => item !== null)}
       />
@@ -165,7 +198,7 @@ async function Transaksi({
 
         <TableShell
           dense
-          minWidth="1106px"
+          minWidth="1298px"
           cols={[
             { key: "tiket", label: "No. Tiket", width: "112px" },
             { key: "peserta", label: "Peserta", width: "130px" },
@@ -175,107 +208,141 @@ async function Transaksi({
             { key: "bukti", label: "Bukti pembayaran", width: "100px" },
             { key: "tanggal", label: "Tgl. pesan", width: "156px" },
             { key: "status", label: "Status", width: "112px" },
-            { key: "aksi", label: "Aksi", width: "168px", align: "right" },
+            { key: "aksi", label: "Aksi", width: "360px", align: "right" },
           ]}
         >
-          {orders.map((order) => (
-            <tr key={order.id}>
-              <Td dense>
-                <span className="block whitespace-nowrap font-mono text-[13px] font-semibold tracking-wide text-dash-ink">
-                  {order.ticketNo ?? "—"}
-                </span>
-              </Td>
-              <Td dense>
-                <span className="block truncate font-semibold text-dash-ink">{order.fullName}</span>
-                <a
-                  href={`mailto:${order.email}`}
-                  className="block truncate text-[12.5px] leading-5 text-dash-muted hover:text-dash-fill-hover hover:underline"
-                >
-                  {order.email}
-                </a>
-              </Td>
-              <Td dense>
-                <a
-                  href={`https://wa.me/${order.whatsapp.replace(/\D/g, "").replace(/^0/, "62")}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block truncate font-medium text-dash-ink hover:text-dash-fill-hover hover:underline"
-                >
-                  {order.whatsapp}
-                </a>
-                <Meta>{order.institution || "—"}</Meta>
-              </Td>
-              <Td dense>
-                <span className="block truncate font-semibold text-dash-ink">{order.plan}</span>
-                <Meta>{order.amount}</Meta>
-              </Td>
-              <Td dense>
-                {order.referralCode ? (
-                  <>
-                    <span className="block truncate font-semibold text-dash-ink">{order.referralCode}</span>
-                    <Meta>Potongan {formatIdr(order.discountAmount)}</Meta>
-                  </>
-                ) : (
-                  <span className="text-dash-muted">—</span>
-                )}
-              </Td>
-              <Td dense>
-                <ProofPreview
-                  src={`/dashboard/bukti/${order.id}`}
-                  name={`${order.fullName} · ${order.plan}`}
-                />
-              </Td>
-              <Td dense>
-                <span className="tnum block whitespace-nowrap text-[13px]">{orderStamp(order.createdAt)}</span>
-              </Td>
-              <Td dense>
-                <OrderStatus status={order.status} short />
-              </Td>
-              <Td dense align="right">
-                {order.status === "pending" ? (
-                  <span className="flex items-center justify-end gap-2">
-                    <form action={approveOrderAction}>
-                      <input type="hidden" name="id" value={order.id} />
-                      <Btn type="submit" variant="primary" size="sm" icon="check">
-                        ACC
-                      </Btn>
-                    </form>
-                    <InlineConfirm
-                      trigger={
-                        <Btn variant="danger" size="sm" icon="x" aria-label={`Tolak transaksi ${order.fullName}`}>
-                          Tolak
+          {orders.map((order) => {
+            const waHref = waLinks.get(order.id);
+            return (
+              <tr key={order.id}>
+                <Td dense>
+                  <span className="block whitespace-nowrap font-mono text-[13px] font-semibold tracking-wide text-dash-ink">
+                    {order.ticketNo ?? "—"}
+                  </span>
+                </Td>
+                <Td dense>
+                  <span className="block truncate font-semibold text-dash-ink">{order.fullName}</span>
+                  <a
+                    href={`mailto:${order.email}`}
+                    className="block truncate text-[12.5px] leading-5 text-dash-muted hover:text-dash-fill-hover hover:underline"
+                  >
+                    {order.email}
+                  </a>
+                </Td>
+                <Td dense>
+                  <a
+                    href={`https://wa.me/${order.whatsapp.replace(/\D/g, "").replace(/^0/, "62")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate font-medium text-dash-ink hover:text-dash-fill-hover hover:underline"
+                  >
+                    {order.whatsapp}
+                  </a>
+                  <Meta>{order.institution || "—"}</Meta>
+                </Td>
+                <Td dense>
+                  <span className="block truncate font-semibold text-dash-ink">{order.plan}</span>
+                  <Meta>{order.amount}</Meta>
+                </Td>
+                <Td dense>
+                  {order.referralCode ? (
+                    <>
+                      <span className="block truncate font-semibold text-dash-ink">{order.referralCode}</span>
+                      <Meta>Potongan {formatIdr(order.discountAmount)}</Meta>
+                    </>
+                  ) : (
+                    <span className="text-dash-muted">—</span>
+                  )}
+                </Td>
+                <Td dense>
+                  <ProofPreview
+                    src={`/dashboard/bukti/${order.id}`}
+                    name={`${order.fullName} · ${order.plan}`}
+                  />
+                </Td>
+                <Td dense>
+                  <span className="tnum block whitespace-nowrap text-[13px]">{orderStamp(order.createdAt)}</span>
+                </Td>
+                <Td dense>
+                  <OrderStatus status={order.status} short />
+                </Td>
+                <Td dense align="right">
+                  {order.status === "pending" ? (
+                    <span className="flex items-center justify-end gap-2">
+                      <form action={approveOrderAction}>
+                        <input type="hidden" name="id" value={order.id} />
+                        <Btn type="submit" variant="primary" size="sm" icon="check">
+                          ACC
                         </Btn>
-                      }
-                      confirm={
-                        <form action={rejectOrderAction}>
-                          <input type="hidden" name="id" value={order.id} />
-                          <Btn type="submit" variant="danger" size="sm" className="border-dash-off-fg/30">
-                            Yakin tolak?
+                      </form>
+                      <InlineConfirm
+                        trigger={
+                          <Btn variant="danger" size="sm" icon="x" aria-label={`Tolak transaksi ${order.fullName}`}>
+                            Tolak
                           </Btn>
-                        </form>
-                      }
-                    />
-                  </span>
-                ) : order.status === "approved" ? (
-                  <span className="flex items-center justify-end gap-2">
-                    <span className="text-[12px] font-medium text-dash-ok-fg">Diterbitkan</span>
-                    {order.ticketNo ? (
-                      <a
-                        href={`/tiket/${encodeURIComponent(order.ticketNo)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={btnClass("outline", "sm")}
-                      >
-                        Lihat
-                      </a>
-                    ) : null}
-                  </span>
-                ) : (
-                  <span className="text-[12.5px] text-dash-muted">Ditolak</span>
-                )}
-              </Td>
-            </tr>
-          ))}
+                        }
+                        confirm={
+                          <form action={rejectOrderAction}>
+                            <input type="hidden" name="id" value={order.id} />
+                            <Btn type="submit" variant="danger" size="sm" className="border-dash-off-fg/30">
+                              Yakin tolak?
+                            </Btn>
+                          </form>
+                        }
+                      />
+                    </span>
+                  ) : order.status === "approved" ? (
+                    <span className="flex items-center justify-end gap-2">
+                      {waHref ? (
+                        <a
+                          href={waHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={`Kirim tiket ke WhatsApp ${order.whatsapp}`}
+                          aria-label={`Kirim tiket ${order.fullName} lewat WhatsApp ke ${order.whatsapp}`}
+                          className={btnClass(
+                            "outline",
+                            "sm",
+                            "border-[#25D366]/50 bg-[#25D366]/10 text-[#0f7a52] hover:bg-[#25D366]/20 hover:text-[#0b5f40]",
+                          )}
+                        >
+                          <WhatsAppIcon />
+                          Kirim lewat WA
+                        </a>
+                      ) : null}
+                      <form action={resendTicketAction}>
+                        <input type="hidden" name="id" value={order.id} />
+                        {q ? <input type="hidden" name="q" value={q} /> : null}
+                        {status !== "semua" ? <input type="hidden" name="status" value={status} /> : null}
+                        <Btn
+                          type="submit"
+                          variant="outline"
+                          size="sm"
+                          icon="mail"
+                          title={`Kirim ulang tiket ke ${order.email}`}
+                          aria-label={`Kirim ulang email tiket ${order.fullName} ke ${order.email}`}
+                        >
+                          Kirim ulang
+                        </Btn>
+                      </form>
+                      {order.ticketNo ? (
+                        <a
+                          href={`/tiket/${encodeURIComponent(order.ticketNo)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={btnClass("outline", "sm")}
+                        >
+                          Lihat
+                        </a>
+                      ) : null}
+                    </span>
+                  ) : (
+                    <span className="text-[12.5px] text-dash-muted">Ditolak</span>
+                  )}
+                </Td>
+              </tr>
+            );
+          })}
           {orders.length === 0 ? (
             <tr>
               <td colSpan={9}>

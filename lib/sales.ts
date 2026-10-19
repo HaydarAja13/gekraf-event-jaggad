@@ -273,6 +273,57 @@ export async function listCustomers() {
   })) satisfies Customer[];
 }
 
+export type CustomerEdit = {
+  id: string;
+  fullName: string;
+  email: string;
+  whatsapp: string;
+  institution: string;
+  jobTitle: string;
+  address: string;
+};
+
+/** Perbarui data customer, lalu samakan snapshot kontaknya di semua transaksi
+ *  miliknya supaya email tiket, tombol WhatsApp, dan halaman tiket memakai
+ *  data terbaru. */
+export async function updateCustomer(input: CustomerEdit) {
+  const id = Number(input.id);
+  if (!Number.isInteger(id) || id <= 0) return { ok: false as const, error: "notfound" as const };
+  const client = db();
+  const email = input.email.trim().toLowerCase();
+  const values = {
+    full_name: input.fullName.trim(),
+    email,
+    whatsapp: input.whatsapp.trim(),
+    institution: input.institution.trim(),
+    job_title: input.jobTitle.trim(),
+    address: input.address.trim(),
+  };
+
+  // Customer dulu supaya constraint unik email menolak duplikat sebelum
+  // transaksinya ikut diubah.
+  const saved = await client
+    .from("customers")
+    .update({ ...values, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (saved.error) {
+    if (saved.error.code === "23505") return { ok: false as const, error: "taken" as const };
+    return { ok: false as const, error: saved.error.message };
+  }
+  if (!saved.data) return { ok: false as const, error: "notfound" as const };
+
+  const synced = await client.from("orders").update(values).eq("customer_id", id);
+  if (synced.error) {
+    return {
+      ok: false as const,
+      error: `Data customer tersimpan, tetapi transaksi lamanya gagal disinkronkan: ${synced.error.message}`,
+    };
+  }
+  return { ok: true as const };
+}
+
 export async function approveOrder(
   id: string,
   send: (order: Order, ticketNo: string) => Promise<{ ok: true } | { ok: false; error: string }>,

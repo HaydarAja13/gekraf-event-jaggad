@@ -24,6 +24,7 @@ import {
   removeReferral,
   undoAttendance,
   updateAccount,
+  updateCustomer,
   updateReferral,
   uploadProof,
 } from "@/lib/sales";
@@ -362,6 +363,37 @@ export async function approveOrderAction(formData: FormData) {
   redirect("/dashboard/transaksi?saved=1");
 }
 
+/** Kembali ke daftar transaksi tanpa membuang pencarian/filter yang sedang aktif. */
+function transaksiBack(formData: FormData, key: "sent" | "error", value: string) {
+  const params = new URLSearchParams();
+  const q = String(formData.get("q") ?? "").trim();
+  const status = String(formData.get("status") ?? "");
+  if (q) params.set("q", q);
+  if (["pending", "approved", "rejected"].includes(status)) params.set("status", status);
+  params.set(key, value);
+  return `/dashboard/transaksi?${params}`;
+}
+
+/** Kirim ulang email tiket ke peserta yang sudah di-ACC. Dipakai saat email
+ *  pertama tidak sampai (salah ketik, masuk spam, atau antrean SMTP gagal). */
+export async function resendTicketAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const order = await orderById(String(formData.get("id") ?? ""));
+  if (!order || order.status !== "approved" || !order.ticketNo) {
+    redirect(transaksiBack(formData, "error", "Tiket belum terbit. ACC transaksi dulu sebelum mengirim email."));
+  }
+  const sent = await eventMail({
+    fullName: order.fullName,
+    plan: order.plan,
+    amount: order.amount,
+    ticketNo: order.ticketNo,
+    to: order.email,
+  });
+  if (!sent.ok) redirect(transaksiBack(formData, "error", sent.error));
+  redirect(transaksiBack(formData, "sent", "1"));
+}
+
 function metaError(message: string): never {
   redirect(`/dashboard/meta?error=${encodeURIComponent(message)}`);
 }
@@ -449,6 +481,47 @@ export async function rejectOrderAction(formData: FormData) {
   if (!admin) redirect("/login");
   await rejectOrder(String(formData.get("id") ?? ""));
   redirect("/dashboard/transaksi");
+}
+
+/** Kembali ke halaman customer dengan form edit yang sama masih terbuka. */
+function customerBack(formData: FormData, key: "saved" | "error", value: string) {
+  const params = new URLSearchParams();
+  const q = String(formData.get("q") ?? "").trim();
+  const id = String(formData.get("id") ?? "").trim();
+  if (q) params.set("q", q);
+  if (id) params.set("edit", id);
+  params.set(key, value);
+  return `/dashboard/customer?${params}`;
+}
+
+export async function updateCustomerAction(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) redirect("/login");
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) redirect("/dashboard/customer");
+
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const whatsapp = String(formData.get("whatsapp") ?? "").trim();
+  const digits = whatsapp.replace(/\D/g, "");
+  if (!fullName || !EMAIL_SHAPE.test(email) || digits.length < 9) {
+    redirect(customerBack(formData, "error", "invalid"));
+  }
+
+  const result = await updateCustomer({
+    id,
+    fullName,
+    email,
+    whatsapp,
+    institution: String(formData.get("institution") ?? "").trim(),
+    jobTitle: String(formData.get("jobTitle") ?? "").trim(),
+    address: String(formData.get("address") ?? "").trim(),
+  });
+  if (!result.ok) {
+    if (result.error === "notfound") redirect("/dashboard/customer?error=notfound");
+    redirect(customerBack(formData, "error", result.error));
+  }
+  redirect(customerBack(formData, "saved", "1"));
 }
 
 export async function previewReferralAction(planName: string, code: string) {
