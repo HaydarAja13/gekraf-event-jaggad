@@ -18,6 +18,17 @@ function rand([min, max]: readonly [number, number]) {
   return Math.round(min + Math.random() * (max - min));
 }
 
+/* Urutan acak tanpa pengulangan: semua item masuk satu "dek", dikocok ulang
+   saat habis. Jadi kartu tidak tampil berurutan dan tidak langsung berulang. */
+function shuffle(length: number) {
+  const order = Array.from({ length }, (_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+
 /* Dibaca saat efek jalan (bukan saat render) supaya aman untuk SSR. */
 function wasDismissed() {
   try {
@@ -68,11 +79,27 @@ export default function SocialProof({ content }: { content: Content }) {
     if (dismissed || wasDismissed() || items.length === 0) return;
     let stopped = false;
     const timers: number[] = [];
+    let deck: number[] = [];
+    let cursor = 0;
 
-    const show = (i: number) => {
+    const nextIndex = () => {
+      if (cursor >= deck.length) {
+        const previous = deck[deck.length - 1];
+        deck = shuffle(items.length);
+        // Hindari kartu yang sama tampil dua kali beruntun saat dek berganti.
+        if (deck.length > 1 && deck[0] === previous) {
+          const swap = 1 + Math.floor(Math.random() * (deck.length - 1));
+          [deck[0], deck[swap]] = [deck[swap], deck[0]];
+        }
+        cursor = 0;
+      }
+      return deck[cursor++];
+    };
+
+    const show = () => {
       if (stopped) return;
       const ms = rand(VISIBLE);
-      setIndex(i % items.length);
+      setIndex(nextIndex());
       setVisibleMs(ms);
       setPhase("in");
 
@@ -88,7 +115,7 @@ export default function SocialProof({ content }: { content: Content }) {
           window.setTimeout(() => {
             if (stopped) return;
             setPhase("idle");
-            timers.push(window.setTimeout(() => show(i + 1), rand(GAP)));
+            timers.push(window.setTimeout(show, rand(GAP)));
           }, OUT_MS),
         );
       };
@@ -96,7 +123,7 @@ export default function SocialProof({ content }: { content: Content }) {
       timers.push(window.setTimeout(hide, ms));
     };
 
-    timers.push(window.setTimeout(() => show(0), rand(FIRST_DELAY)));
+    timers.push(window.setTimeout(show, rand(FIRST_DELAY)));
 
     return () => {
       stopped = true;

@@ -285,104 +285,184 @@
     "line": "Telah membeli tiket Early Bird",
     "items": [
       {
-        "name": "Andini Putri",
-        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=AP"
-      },
-      {
-        "name": "Bagus Saputra",
-        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=BS"
-      },
-      {
-        "name": "Citra Lestari",
-        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=CL"
-      },
-      {
         "name": "Dimas Wibowo",
         "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=DW"
-      },
-      {
-        "name": "Fitri Handayani",
-        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=FH"
-      },
-      {
-        "name": "Gilang Ramadhan",
-        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=GR"
-      },
-      {
-        "name": "Hana Maulida",
-        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=HM"
-      },
-      {
-        "name": "Rizky Pratama",
-        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=RP"
-      },
-      {
-        "name": "Intan Permatasari",
-        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=IP"
-      },
-      {
-        "name": "Yoga Prasetyo",
-        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=YP"
       },
       {
         "name": "Salsabila Rahma",
         "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=SR"
       },
       {
-        "name": "Fajar Nugroho",
-        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=FN"
-      },
-      {
-        "name": "Nabila Azzahra",
-        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=NA"
-      },
-      {
-        "name": "Reza Kurniawan",
-        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=RK"
-      },
-      {
-        "name": "Melati Kusuma",
-        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=MK"
-      },
-      {
-        "name": "Arif Setiawan",
-        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=AS"
-      },
-      {
-        "name": "Dewi Anggraini",
-        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=DA"
-      },
-      {
-        "name": "Hendra Wijaya",
-        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=HW"
-      },
-      {
-        "name": "Putri Ayu Lestari",
-        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=PA"
-      },
-      {
-        "name": "Bayu Saptomo",
-        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=BS"
-      },
-      {
-        "name": "Rina Marlina",
-        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=RM"
+        "name": "Gilang Ramadhan",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=GR"
       },
       {
         "name": "Yusuf Maulana",
         "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=YM"
       },
       {
+        "name": "Yoga Prasetyo",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=YP"
+      },
+      {
+        "name": "Rina Marlina",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=RM"
+      },
+      {
+        "name": "Maya Puspita",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=MP"
+      },
+      {
         "name": "Sarah Oktaviani",
         "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=SO"
+      },
+      {
+        "name": "Reza Kurniawan",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=RK"
+      },
+      {
+        "name": "Nanda Kurniasari",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=NK"
+      },
+      {
+        "name": "Galih Prakoso",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=GP"
+      },
+      {
+        "name": "Hendra Wijaya",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=HW"
+      },
+      {
+        "name": "Bella Anjani",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=BA"
+      },
+      {
+        "name": "Tiara Safitri",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=TS"
+      },
+      {
+        "name": "Wulan Sari",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=WS"
+      },
+      {
+        "name": "Bagus Saputra",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=BS"
+      },
+      {
+        "name": "Rizky Pratama",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=RP"
+      },
+      {
+        "name": "Melati Kusuma",
+        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=MK"
+      },
+      {
+        "name": "Rudi Hartono",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=RH"
+      },
+      {
+        "name": "Fitri Handayani",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=FH"
+      },
+      {
+        "name": "Nabila Azzahra",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=NA"
+      },
+      {
+        "name": "Taufik Hidayat",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=TH"
+      },
+      {
+        "name": "Fajar Nugroho",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=FN"
+      },
+      {
+        "name": "Laras Sekarwati",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=LS"
+      },
+      {
+        "name": "Ayu Wulandari",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=AW"
+      },
+      {
+        "name": "Arif Setiawan",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=AS"
+      },
+      {
+        "name": "Farhan Akbar",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=FA"
+      },
+      {
+        "name": "Dian Permata",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=DP"
       },
       {
         "name": "Adi Nugraha",
         "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=AN"
       },
       {
-        "name": "Tiara Safitri",
-        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=TS"
+        "name": "Nadia Safira",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=NS"
+      },
+      {
+        "name": "Ahmad Fauzi",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=AF"
+      },
+      {
+        "name": "Bima Prasetya",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=BP"
+      },
+      {
+        "name": "Eko Susanto",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=ES"
+      },
+      {
+        "name": "Andini Putri",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=AP"
+      },
+      {
+        "name": "Intan Permatasari",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=IP"
+      },
+      {
+        "name": "Rizal Fadillah",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=RF"
+      },
+      {
+        "name": "Anita Rahmawati",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=AR"
+      },
+      {
+        "name": "Dewi Anggraini",
+        "src": "https://placehold.co/120x120/0299c3/ffffff/png?text=DA"
+      },
+      {
+        "name": "Bayu Saptomo",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=BS"
+      },
+      {
+        "name": "Putri Ayu Lestari",
+        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=PA"
+      },
+      {
+        "name": "Citra Lestari",
+        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=CL"
+      },
+      {
+        "name": "Satria Wijaya",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=SW"
+      },
+      {
+        "name": "Doni Firmansyah",
+        "src": "https://placehold.co/120x120/f2cb19/0b1118/png?text=DF"
+      },
+      {
+        "name": "Hana Maulida",
+        "src": "https://placehold.co/120x120/018bb0/ffffff/png?text=HM"
+      },
+      {
+        "name": "Sinta Maharani",
+        "src": "https://placehold.co/120x120/0b1118/ffffff/png?text=SM"
       }
     ]
   },
