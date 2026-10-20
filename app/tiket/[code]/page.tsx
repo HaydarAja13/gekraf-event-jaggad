@@ -1,10 +1,24 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import Navbar from "../../components/Navbar";
 import { orderByTicket } from "@/lib/sales";
 import { getSite } from "@/lib/site";
 import { getTicketSettings } from "@/lib/ticket-settings";
+
+/** Halaman tiket memuat nama pembeli, jadi tidak boleh masuk indeks. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ code: string }>;
+}): Promise<Metadata> {
+  const { code } = await params;
+  return {
+    title: `E-Tiket ${code}`,
+    robots: { index: false, follow: false, nocache: true },
+  };
+}
 
 export default function TicketPage({
   params,

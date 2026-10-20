@@ -2,7 +2,13 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  return updateSession(request);
+  const response = await updateSession(request);
+  // Preview/branch deployment punya URL acak sendiri. Jangan sampai versi
+  // setengah jadi ikut masuk indeks Google dan menyaingi domain produksi.
+  if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
+    response.headers.set("x-robots-tag", "noindex, nofollow");
+  }
+  return response;
 }
 
 export const config = {

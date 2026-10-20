@@ -4,7 +4,10 @@ import { listSales } from "@/lib/sales";
 import { getSite } from "@/lib/site";
 import { Shell } from "./shell";
 
-export const metadata = { title: "Dashboard" };
+export const metadata = {
+  title: "Dashboard",
+  robots: { index: false, follow: false },
+};
 
 export default function DashboardLayout({
   children,

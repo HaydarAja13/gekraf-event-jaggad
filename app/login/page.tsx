@@ -5,7 +5,10 @@ import { getAdmin } from "@/lib/auth";
 import { Flash } from "@/app/toast";
 import { PendingButton } from "@/app/submit";
 
-export const metadata = { title: "Masuk" };
+export const metadata = {
+  title: "Masuk",
+  robots: { index: false, follow: false },
+};
 
 export default function LoginPage({
   searchParams,

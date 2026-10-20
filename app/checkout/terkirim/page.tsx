@@ -8,7 +8,7 @@ import { TicketFrame } from "../ticket";
 import { WhatsAppIcon } from "../icons";
 
 export const metadata: Metadata = {
-  title: "Pendaftaran Terkirim — Business Skill Mastery",
+  title: "Pendaftaran Terkirim",
   description: "Pendaftaran tiket Anda sudah masuk dan menunggu verifikasi panitia.",
   robots: { index: false, follow: false },
 };

@@ -13,14 +13,36 @@ import Speakers from "./components/Speakers";
 import Testimonials from "./components/Testimonials";
 import WhyChoose from "./components/WhyChoose";
 import { takenByPlan } from "@/lib/sales";
+import { OG_IMAGE, SITE_NAME, SITE_URL, structuredData } from "@/lib/seo";
 import { getSite } from "@/lib/site";
 import type { Site } from "@/lib/types";
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSite();
+  // Judul dari CMS, ditambah badge acara supaya tidak terlalu pendek di hasil
+  // pencarian — kecuali badge itu sudah tertulis di judulnya.
+  const title = site.seo.title.includes(site.hero.badge)
+    ? site.seo.title
+    : `${site.seo.title} — ${site.hero.badge}`;
   return {
-    title: site.seo.title,
+    title: { absolute: title },
     description: site.seo.description,
+    alternates: { canonical: "/" },
+    openGraph: {
+      type: "website",
+      locale: "id_ID",
+      url: SITE_URL,
+      siteName: SITE_NAME,
+      title,
+      description: site.seo.description,
+      images: [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: site.seo.description,
+      images: [OG_IMAGE.url],
+    },
   };
 }
 
@@ -29,6 +51,12 @@ export default async function Home() {
 
   return (
     <main className="flex-1">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData(site)).replace(/</g, "\\u003c"),
+        }}
+      />
       <Navbar content={site.navbar} />
       <Hero content={site.hero} />
       <PainPoints content={site.pain} />

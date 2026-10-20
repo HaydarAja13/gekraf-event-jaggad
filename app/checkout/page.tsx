@@ -16,7 +16,7 @@ import { TicketFrame } from "./ticket";
 type Plan = Site["pricing"]["plans"][number];
 
 export const metadata: Metadata = {
-  title: "Pendaftaran Tiket — Business Skill Mastery",
+  title: "Pendaftaran Tiket",
   description:
     "Langkah terakhir pendaftaran: pilih rekening, transfer sesuai nominal, dan kirim bukti pembayaran.",
   robots: { index: false, follow: false },
