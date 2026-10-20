@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   title: "Business Skill Mastery",
   description:
     "Build Your Business. Lead Your People. Scale Your Impact. — National Business Growth Class",
+  verification: {
+    google: "9GZwps45h5wHKvY7IdWbJlW6pkTxvIgViehI7JAkwVQ",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
