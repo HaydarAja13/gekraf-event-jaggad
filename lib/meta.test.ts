@@ -34,6 +34,16 @@ test("form menolak pixel yang bukan angka dan menyimpan kode uji kosong", () => 
   assert.equal(ok.value.testEventCode, "TEST123");
 });
 
+test("access token Conversions API boleh kosong (opsional)", () => {
+  const data = form({ pixelId: "1234567890", accessToken: "", testEventCode: "" });
+  data.set("enabled", "1");
+  const ok = readMetaForm(data);
+  assert.equal(ok.ok, true);
+  if (!ok.ok) return;
+  assert.equal(ok.value.accessToken, "");
+  assert.equal(ok.value.enabled, true);
+});
+
 test("pesan error tidak mengulang token", () => {
   assert.equal(publicMetaError("token ditolak token", "token"), "•••• ditolak ••••");
 });

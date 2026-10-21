@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
-const GRAPH = "v23.0";
+const GRAPH = "v26.0";
 const PIXEL_SHAPE = /^[0-9]{5,20}$/;
 const TEST_CODE_SHAPE = /^[A-Za-z0-9]{0,32}$/;
 
@@ -128,10 +128,11 @@ export async function getMetaSettings() {
   } satisfies MetaPublic;
 }
 
+/** Access token Conversions API bersifat opsional: tanpa token, Pixel tetap
+ *  mengirim event browser dan hanya event server (CAPI) yang dilewati. */
 export async function saveMeta(input: MetaInput) {
   const existing = await loadRow();
-  const accessToken = input.accessToken || existing?.access_token || "";
-  if (!accessToken) return { ok: false as const, error: "Access token Conversions API wajib diisi." };
+  const accessToken = (input.accessToken || existing?.access_token || "").trim();
   const { error } = await db().from("meta_settings").upsert(
     {
       id: 1,
@@ -143,33 +144,62 @@ export async function saveMeta(input: MetaInput) {
     },
     { onConflict: "id" },
   );
-  if (!error) return { ok: true as const };
+  if (!error) return { ok: true as const, hasToken: accessToken.length > 0 };
   if (error.code === "42P01") {
     return { ok: false as const, error: "Tabel pengaturan Meta belum ada di database." };
   }
-  if (error.code === "23514") return { ok: false as const, error: "Pixel ID atau kode uji tidak valid." };
+  if (error.code === "23514") {
+    // Sebelum migration 20261021120000_meta_token_optional.sql, token kosong
+    // masih ditolak constraint database — arahkan ke solusi yang benar.
+    if (!accessToken) {
+      return {
+        ok: false as const,
+        error:
+          "Access token masih kosong dan database belum mengizinkan token kosong. Jalankan migration 20261021120000_meta_token_optional.sql dulu.",
+      };
+    }
+    return { ok: false as const, error: "Pixel ID atau kode uji tidak valid." };
+  }
   return { ok: false as const, error: error.message };
 }
 
+type GraphJson = {
+  name?: string;
+  events_received?: number;
+  error?: { message?: string };
+};
+
 async function graph(row: MetaRow, path: string, init?: RequestInit, timeout = 12_000) {
+  if (!row.access_token) {
+    return { ok: false as const, error: "Access token Conversions API belum diisi." };
+  }
   const url = new URL(`https://graph.facebook.com/${GRAPH}/${path}`);
   url.searchParams.set("access_token", row.access_token);
-  const response = await fetch(url, { ...init, signal: AbortSignal.timeout(timeout) });
-  const json = (await response.json()) as {
-    name?: string;
-    events_received?: number;
-    error?: { message?: string };
-  };
-  if (!response.ok || json.error) {
-    return { ok: false as const, error: publicMetaError(json.error?.message ?? "Meta menolak permintaan.", row.access_token) };
+  try {
+    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(timeout) });
+    // Meta bisa membalas non-JSON saat gangguan; jangan biarkan itu melempar.
+    let json: GraphJson = {};
+    try {
+      json = (await response.json()) as GraphJson;
+    } catch {
+      json = {};
+    }
+    if (!response.ok || json.error) {
+      return { ok: false as const, error: publicMetaError(json.error?.message ?? "Meta menolak permintaan.", row.access_token) };
+    }
+    return { ok: true as const, json };
+  } catch {
+    return { ok: false as const, error: "Tidak bisa menghubungi server Meta. Coba beberapa saat lagi." };
   }
-  return { ok: true as const, json };
 }
 
 /** Proves the token can read this pixel. */
 export async function verifyMeta() {
   const row = await loadRow();
   if (!row) return { ok: false as const, error: "Pengaturan Meta belum disimpan." };
+  if (!row.access_token) {
+    return { ok: false as const, error: "Access token Conversions API belum diisi. Pixel tetap jalan, tetapi koneksi server belum bisa diuji." };
+  }
   const result = await graph(row, `${row.pixel_id}?fields=name`);
   if (!result.ok) return result;
   return { ok: true as const, name: result.json.name || row.pixel_id };
@@ -178,6 +208,9 @@ export async function verifyMeta() {
 export async function sendMetaTest(sourceUrl: string) {
   const row = await loadRow();
   if (!row) return { ok: false as const, error: "Simpan Pixel ID dan token dulu." };
+  if (!row.access_token) {
+    return { ok: false as const, error: "Access token Conversions API belum diisi. Event uji dikirim dari server, jadi token diperlukan." };
+  }
   if (!row.test_event_code) {
     return { ok: false as const, error: "Isi kode uji dari tab Test events di Events Manager." };
   }

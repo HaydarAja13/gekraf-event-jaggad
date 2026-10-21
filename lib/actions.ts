@@ -406,6 +406,14 @@ export async function saveMetaAction(formData: FormData) {
   const saved = await saveMeta(parsed.value);
   if (!saved.ok) metaError(saved.error);
   if (!parsed.value.enabled) redirect("/dashboard/meta?saved=1");
+  if (!saved.hasToken) {
+    // Token CAPI opsional: Pixel tetap jalan, hanya event server yang ditunda.
+    redirect(
+      `/dashboard/meta?saved=1&warn=${encodeURIComponent(
+        "Access token Conversions API masih kosong. Pixel tetap mengirim event browser; event server (CAPI) baru dikirim setelah token diisi.",
+      )}`,
+    );
+  }
   const check = await verifyMeta();
   if (!check.ok) {
     redirect(`/dashboard/meta?warn=${encodeURIComponent(`Tersimpan, tetapi Meta menolak: ${check.error}`)}`);

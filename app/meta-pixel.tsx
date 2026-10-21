@@ -28,7 +28,7 @@ function install(pixelId: string) {
   }
   const fbq = function (this: unknown, ...args: unknown[]) {
     const queued = fbq as Fbq;
-    if (queued.callMethod) queued.callMethod.apply(queued, args);
+    if (queued.callMethod) queued.callMethod(...args);
     else queued.queue.push(args);
   } as Fbq;
   fbq.queue = [];

@@ -44,6 +44,7 @@ async function MetaSettings({
     loadError = error instanceof Error ? error.message : "Pengaturan Meta gagal dimuat.";
   }
   const ready = settings ?? { pixelId: "", testEventCode: "", enabled: true, hasToken: false };
+  const configured = Boolean(settings?.pixelId);
   const pixelName = query.pixel ? decodeURIComponent(query.pixel) : "";
 
   return (
@@ -51,7 +52,7 @@ async function MetaSettings({
       <PageHead
         date={todayLine()}
         title={`${greeting()}, ${admin?.username ?? "admin"}`}
-        sub="Sambungkan Pixel dan Conversions API. Iklan Meta lalu menerima kunjungan, pendaftaran, dan pembayaran yang di-ACC."
+        sub="Sambungkan Pixel dan, opsional, Conversions API. Iklan Meta lalu menerima kunjungan, pendaftaran, dan pembayaran yang di-ACC."
       />
 
       <Flash
@@ -80,8 +81,14 @@ async function MetaSettings({
               <Icon name="megaphone" className="h-[18px] w-[18px] text-dash-muted" />
               <h2 className="text-[15px] font-bold tracking-[-0.01em] text-dash-ink">Meta Ads</h2>
             </div>
-            <Pill tone={ready.hasToken && ready.enabled ? "ok" : "wait"}>
-              {ready.hasToken && ready.enabled ? "Aktif" : "Belum tersambung"}
+            <Pill tone={!configured ? "wait" : ready.enabled ? (ready.hasToken ? "ok" : "warn") : "wait"}>
+              {!configured
+                ? "Belum tersambung"
+                : !ready.enabled
+                  ? "Nonaktif"
+                  : ready.hasToken
+                    ? "Aktif"
+                    : "Pixel aktif, CAPI belum"}
             </Pill>
           </div>
 
@@ -100,12 +107,11 @@ async function MetaSettings({
             </Field>
             <Field
               id="accessToken"
-              label="Access token Conversions API"
-              required={!ready.hasToken}
+              label="Access token Conversions API (opsional)"
               hint={
                 ready.hasToken
                   ? "Kosongkan kalau token tidak diganti. Token tidak ditampilkan lagi."
-                  : "Events Manager → Settings → Conversions API → Generate access token."
+                  : "Opsional. Tanpa token, Pixel tetap mengirim event browser; hanya event server yang dilewati. Isi dari Events Manager → Settings → Conversions API → Generate access token."
               }
             >
               <input
@@ -113,7 +119,6 @@ async function MetaSettings({
                 name="accessToken"
                 type="password"
                 autoComplete="new-password"
-                required={!ready.hasToken}
                 className={inputClass}
               />
             </Field>
@@ -157,6 +162,13 @@ async function MetaSettings({
           <p className="text-[13.5px] leading-relaxed text-dash-muted">
             Simpan dulu, isi kode uji, lalu kirim. Meta menampilkan event ini di tab Test events, bukan di laporan iklan.
           </p>
+          {!ready.hasToken ? (
+            <p className="mt-2 text-[13px] leading-5 text-dash-warn-fg">
+              {!configured
+                ? "Belum ada pengaturan tersimpan. Isi Pixel ID lalu simpan; access token boleh dikosongkan."
+                : "Access token belum diisi, jadi event uji dari server belum bisa dikirim."}
+            </p>
+          ) : null}
           <form action={sendMetaTestAction} className="mt-4">
             <Btn type="submit" variant="outline" icon="external">
               Kirim event uji
@@ -166,7 +178,7 @@ async function MetaSettings({
             <li>Kunjungan halaman masuk sebagai PageView lewat Pixel.</li>
             <li>Checkout terbuka masuk sebagai InitiateCheckout.</li>
             <li>Pendaftaran terkirim masuk sebagai Lead, dari browser dan server.</li>
-            <li>ACC pembayaran masuk sebagai Purchase dari server.</li>
+            <li>ACC pembayaran masuk sebagai Purchase dari server — perlu access token.</li>
           </ul>
         </Card>
       </div>
