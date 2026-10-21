@@ -16,16 +16,29 @@ declare global {
   }
 }
 
+const PIXEL_RE = /^\d{5,20}$/;
+
 const started = new Set<string>();
+
+/** Base code Meta Pixel, dimasukkan langsung ke HTML server agar jalan sebelum hydration. */
+function baseCode(pixelId: string) {
+  return `!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${pixelId}');
+fbq('track', 'PageView');`;
+}
 
 function install(pixelId: string) {
   if (started.has(pixelId)) return;
   started.add(pixelId);
-  if (window.fbq) {
-    window.fbq("init", pixelId);
-    window.fbq("track", "PageView");
-    return;
-  }
+  // Base code dari server sudah menginisialisasi fbq — jangan dobel PageView.
+  if (window.fbq) return;
   const fbq = function (this: unknown, ...args: unknown[]) {
     const queued = fbq as Fbq;
     if (queued.callMethod) queued.callMethod(...args);
@@ -46,13 +59,28 @@ function install(pixelId: string) {
 export function MetaPixel({ pixelId }: { pixelId: string }) {
   const path = usePathname();
   const hidden = path.startsWith("/dashboard") || path.startsWith("/login");
+  const valid = PIXEL_RE.test(pixelId);
 
   useEffect(() => {
-    if (hidden || !/^\d{5,20}$/.test(pixelId)) return;
+    if (hidden || !valid) return;
     install(pixelId);
-  }, [hidden, pixelId]);
+  }, [hidden, valid, pixelId]);
 
-  return null;
+  if (hidden || !valid) return null;
+  return (
+    <>
+      <script id="meta-pixel" dangerouslySetInnerHTML={{ __html: baseCode(pixelId) }} />
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style={{ display: "none" }}
+          src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
+          alt=""
+        />
+      </noscript>
+    </>
+  );
 }
 
 export function MetaEvent({
